@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { getFacts } from '@/services/facts'
 import type { Fact } from '@/services/facts'
+import { normalizeImageUrl } from '@/services/upload'
 import Link from 'next/link'
 
 /**
@@ -120,7 +121,7 @@ export default function Home() {
                   {fact.image_url && (
                     <div className="relative overflow-hidden">
                       <img
-                        src={fact.image_url}
+                        src={normalizeImageUrl(fact.image_url) || fact.image_url}
                         alt={fact.title}
                         className="w-full h-48 object-cover transition-transform duration-300 hover:scale-110"
                       />

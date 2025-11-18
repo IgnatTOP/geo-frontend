@@ -4,6 +4,7 @@ import { getPractices, createPractice, updatePractice, deletePractice, getAllPra
 import { getLessons } from '@/services/lessons'
 import type { Practice, PracticeSubmit } from '@/services/practices'
 import type { Lesson } from '@/services/lessons'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -278,9 +279,14 @@ export default function AdminPracticesPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex gap-2">
-                  <a href={submit.file_url} target="_blank" rel="noopener noreferrer">
+                  {(() => {
+                    const normalizedUrl = normalizeFileUrl(submit.file_url) || submit.file_url
+                    return (
+                  <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                     <Button variant="outline">Открыть файл</Button>
                   </a>
+                    )
+                  })()}
                   <Button onClick={() => openGradeDialog(submit)}>
                     Выставить оценку
                   </Button>

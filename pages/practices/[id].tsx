@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
 import { getPractice, submitPractice, getMyPracticeSubmits } from '@/services/practices'
 import type { Practice, PracticeSubmit } from '@/services/practices'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -134,9 +135,11 @@ export default function PracticeDetailPage() {
             </div>
           </CardHeader>
           <CardContent className="pt-6">
-            {practice.file_url && (
+            {practice.file_url && (() => {
+              const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+              return (
               <div className="mb-4">
-                <a href={practice.file_url} target="_blank" rel="noopener noreferrer">
+                <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                   <Button variant="outline" className="w-full hover:bg-primary/10">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -145,7 +148,8 @@ export default function PracticeDetailPage() {
                   </Button>
                 </a>
               </div>
-            )}
+              )
+            })()}
           </CardContent>
         </Card>
 
@@ -173,7 +177,10 @@ export default function PracticeDetailPage() {
               </div>
             </CardHeader>
             <CardContent className="pt-6">
-              <a href={mySubmit.file_url} target="_blank" rel="noopener noreferrer">
+              {(() => {
+                const normalizedUrl = normalizeFileUrl(mySubmit.file_url) || mySubmit.file_url
+                return (
+              <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                 <Button variant="outline" className="w-full hover:bg-primary/10">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -181,6 +188,8 @@ export default function PracticeDetailPage() {
                   Открыть файл
                 </Button>
               </a>
+                )
+              })()}
             </CardContent>
           </Card>
         ) : (

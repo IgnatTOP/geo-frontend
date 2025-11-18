@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
 import { getPractices, getMyPracticeSubmits, getMyPracticeGrades } from '@/services/practices'
 import type { Practice, PracticeSubmit, PracticeGrade } from '@/services/practices'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import SearchBar from '@/components/SearchBar'
@@ -152,13 +153,16 @@ export default function PracticesPage() {
                     </div>
                   )}
                   <div className="flex gap-2">
-                    {practice.file_url && (
-                      <a href={practice.file_url} target="_blank" rel="noopener noreferrer">
+                    {practice.file_url && (() => {
+                      const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+                      return (
+                      <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                         <Button variant="outline" className="flex-1 hover:bg-primary/10">
                           Скачать
                         </Button>
                       </a>
-                    )}
+                      )
+                    })()}
                     <Button
                       className="flex-1 gradient-primary shadow-glow"
                       onClick={() => {

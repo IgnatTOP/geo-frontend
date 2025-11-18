@@ -8,6 +8,12 @@ export interface UploadResponse {
 // Базовый URL API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
+// Базовый URL бекенда без /api/v1 для статических файлов
+const getBackendBaseUrl = (): string => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+  return apiUrl.replace('/api/v1', '')
+}
+
 /**
  * Загружает файл на сервер
  * @param file - Файл для загрузки
@@ -25,16 +31,46 @@ export async function uploadFile(file: File, type: string = 'other'): Promise<Up
     },
   })
 
-  // Если URL относительный, добавляем базовый URL
+  // Если URL относительный, добавляем базовый URL без /api/v1
   let url = response.data.url
   if (url.startsWith('/')) {
-    url = `${API_URL}${url}`
+    const baseUrl = getBackendBaseUrl()
+    url = `${baseUrl}${url}`
   }
 
   return {
     ...response.data,
     url,
   }
+}
+
+/**
+ * Нормализует URL файла (добавляет базовый URL если нужно)
+ * Работает для изображений, документов, видео и других файлов
+ */
+export function normalizeFileUrl(url: string | undefined | null): string | undefined {
+  if (!url) return undefined
+  
+  // Если URL уже полный (начинается с http:// или https://), возвращаем как есть
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url
+  }
+  
+  // Если URL относительный, добавляем базовый URL бекенда
+  if (url.startsWith('/')) {
+    const baseUrl = getBackendBaseUrl()
+    return `${baseUrl}${url}`
+  }
+  
+  return url
+}
+
+/**
+ * Нормализует URL изображения (добавляет базовый URL если нужно)
+ * @deprecated Используйте normalizeFileUrl вместо этого
+ */
+export function normalizeImageUrl(url: string | undefined | null): string | undefined {
+  return normalizeFileUrl(url)
 }
 
 /**

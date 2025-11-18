@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getFacts } from '@/services/facts'
 import type { Fact } from '@/services/facts'
+import { normalizeImageUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import SearchBar from '@/components/SearchBar'
@@ -98,7 +99,7 @@ export default function FactsPage() {
               {fact.image_url && (
                 <div className="relative overflow-hidden">
                   <img
-                    src={fact.image_url}
+                    src={normalizeImageUrl(fact.image_url) || fact.image_url}
                     alt={fact.title}
                     className="w-full h-64 object-cover transition-transform duration-300 hover:scale-110"
                   />

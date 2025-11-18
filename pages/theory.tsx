@@ -8,6 +8,7 @@ import type { Lesson } from '@/services/lessons'
 import type { Report } from '@/services/reports'
 import type { Video } from '@/services/videos'
 import type { Fact } from '@/services/facts'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import SearchBar from '@/components/SearchBar'
@@ -159,7 +160,7 @@ export default function TheoryPage() {
                         return (
                           <div className="relative h-48 overflow-hidden">
                             <img
-                              src={images[0]}
+                              src={normalizeFileUrl(images[0]) || images[0]}
                               alt={lesson.topic}
                               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                             />
@@ -265,7 +266,10 @@ export default function TheoryPage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent>
-                        <a href={report.file_url} target="_blank" rel="noopener noreferrer">
+                        {(() => {
+                          const normalizedUrl = normalizeFileUrl(report.file_url) || report.file_url
+                          return (
+                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                           <Button variant="outline" className="w-full hover:bg-primary/10">
                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -273,6 +277,8 @@ export default function TheoryPage() {
                             Открыть файл
                           </Button>
                         </a>
+                          )
+                        })()}
                       </CardContent>
                     </Card>
                   ))}
@@ -293,11 +299,16 @@ export default function TheoryPage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <a href={report.file_url} target="_blank" rel="noopener noreferrer">
+                      {(() => {
+                        const normalizedUrl = normalizeFileUrl(report.file_url) || report.file_url
+                        return (
+                      <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                         <Button variant="outline" className="w-full">
                           Открыть файл
                         </Button>
                       </a>
+                        )
+                      })()}
                     </CardContent>
                   </Card>
                 ))}
@@ -412,7 +423,7 @@ export default function TheoryPage() {
               <Card key={fact.id}>
                 {fact.image_url && (
                   <img
-                    src={fact.image_url}
+                    src={normalizeFileUrl(fact.image_url) || fact.image_url}
                     alt={fact.title}
                     className="w-full h-48 object-cover rounded-t-lg"
                   />

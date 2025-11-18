@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
 import { getLesson } from '@/services/lessons'
 import type { Lesson } from '@/services/lessons'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -111,16 +112,19 @@ export default function LessonDetailPage() {
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold mb-4">Фотографии</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {images.map((imageUrl, index) => (
+                        {images.map((imageUrl, index) => {
+                          const normalizedUrl = normalizeFileUrl(imageUrl) || imageUrl
+                          return (
                           <div key={index} className="rounded-lg overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all">
                             <img
-                              src={imageUrl}
+                              src={normalizedUrl}
                               alt={`Фото ${index + 1}`}
                               className="w-full h-64 object-cover cursor-pointer hover:scale-105 transition-transform"
-                              onClick={() => window.open(imageUrl, '_blank')}
+                              onClick={() => window.open(normalizedUrl, '_blank')}
                             />
                           </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )
@@ -140,12 +144,15 @@ export default function LessonDetailPage() {
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold mb-4">Документы</h3>
                       <div className="space-y-2">
-                        {documents.map((docUrl, index) => (
+                        {documents.map((docUrl, index) => {
+                          const normalizedUrl = normalizeFileUrl(docUrl) || docUrl
+                          return (
                           <a
                             key={index}
-                            href={docUrl}
+                            href={normalizedUrl}
                             target="_blank"
                             rel="noopener noreferrer"
+                            download
                             className="flex items-center gap-3 p-4 rounded-lg border-2 border-primary/10 hover:border-primary/30 hover:bg-primary/5 transition-all"
                           >
                             <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -156,7 +163,8 @@ export default function LessonDetailPage() {
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
                           </a>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )
@@ -176,10 +184,12 @@ export default function LessonDetailPage() {
                     <div className="mt-6">
                       <h3 className="text-xl font-semibold mb-4">Видеофайлы</h3>
                       <div className="space-y-4">
-                        {videoFiles.map((videoUrl, index) => (
+                        {videoFiles.map((videoUrl, index) => {
+                          const normalizedUrl = normalizeFileUrl(videoUrl) || videoUrl
+                          return (
                           <div key={index} className="rounded-lg overflow-hidden border-2 border-primary/10">
                             <video
-                              src={videoUrl}
+                              src={normalizedUrl}
                               controls
                               className="w-full"
                               preload="metadata"
@@ -187,7 +197,8 @@ export default function LessonDetailPage() {
                               Ваш браузер не поддерживает видео.
                             </video>
                           </div>
-                        ))}
+                          )
+                        })}
                       </div>
                     </div>
                   )
@@ -240,13 +251,16 @@ export default function LessonDetailPage() {
                     <CardTitle className="text-xl">{practice.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="flex gap-2">
-                    {practice.file_url && (
-                      <a href={practice.file_url} target="_blank" rel="noopener noreferrer">
+                    {practice.file_url && (() => {
+                      const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+                      return (
+                      <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                         <Button variant="outline" className="flex-1 hover:bg-primary/10">
                           Скачать
                         </Button>
                       </a>
-                    )}
+                      )
+                    })()}
                     <Button
                       className="flex-1 gradient-primary shadow-glow"
                       onClick={() => router.push(`/practices/${practice.id}`)}
@@ -317,11 +331,16 @@ export default function LessonDetailPage() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <a href={report.file_url} target="_blank" rel="noopener noreferrer">
+                    {(() => {
+                      const normalizedUrl = normalizeFileUrl(report.file_url) || report.file_url
+                      return (
+                    <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                       <Button variant="outline" className="w-full hover:bg-primary/10">
                         Открыть файл
                       </Button>
                     </a>
+                      )
+                    })()}
                   </CardContent>
                 </Card>
               ))}

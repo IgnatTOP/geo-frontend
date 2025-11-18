@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { getFacts, createFact, updateFact, deleteFact } from '@/services/facts'
 import type { Fact } from '@/services/facts'
+import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -238,7 +239,7 @@ export default function AdminFactsPage() {
             <Card key={fact.id}>
               {fact.image_url && (
                 <img
-                  src={fact.image_url}
+                  src={normalizeFileUrl(fact.image_url) || fact.image_url}
                   alt={fact.title}
                   className="w-full h-48 object-cover rounded-t-lg"
                 />
