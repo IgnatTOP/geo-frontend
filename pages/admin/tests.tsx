@@ -247,7 +247,7 @@ export default function AdminTestsPage() {
                   Создать тест
                 </Button>
               </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto w-full">
                   <DialogHeader>
                     <DialogTitle>Создать тест</DialogTitle>
                     <DialogDescription>

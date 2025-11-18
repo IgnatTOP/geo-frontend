@@ -20,6 +20,7 @@ export interface Test {
   title: string
   description?: string
   type: 'single' | 'multiple' // Тип теста
+  allow_retake?: boolean // Разрешить повторное прохождение
   created_at: string
   updated_at: string
   lesson?: Lesson

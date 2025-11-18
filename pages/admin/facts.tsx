@@ -170,7 +170,7 @@ export default function AdminFactsPage() {
                   Создать факт
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl">
+              <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto w-full">
                 <DialogHeader>
                   <DialogTitle>
                     {editingFact ? 'Редактировать факт' : 'Создать факт'}

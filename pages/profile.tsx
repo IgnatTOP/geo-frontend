@@ -12,13 +12,17 @@ import Link from 'next/link'
  * Страница профиля пользователя с результатами
  */
 export default function ProfilePage() {
-  const { user, isAuth, logout } = useAuth()
+  const { user, isAuth, logout, loading: authLoading } = useAuth()
   const [testGrades, setTestGrades] = useState<TestGrade[]>([])
   const [practiceGrades, setPracticeGrades] = useState<PracticeGrade[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!isAuth) return
+    if (authLoading) return
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadData = async () => {
       try {
@@ -36,7 +40,11 @@ export default function ProfilePage() {
     }
 
     loadData()
-  }, [isAuth])
+  }, [isAuth, authLoading])
+
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
 
   if (!isAuth) {
     return (
@@ -68,7 +76,7 @@ export default function ProfilePage() {
       : 0
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2 text-gradient">Профиль</h1>

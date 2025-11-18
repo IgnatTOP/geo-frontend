@@ -135,11 +135,17 @@ export default function AdminLessonsPage() {
 
   const handleDelete = async (id: number) => {
     if (!confirm('Удалить урок?')) return
+    // Оптимистичное обновление: удаляем из списка сразу
+    const previousLessons = lessons
+    setLessons(lessons.filter(lesson => lesson.id !== id))
     try {
       await deleteLesson(id)
+      // Перезагружаем список для синхронизации с сервером
       loadLessons()
     } catch (error) {
       console.error('Ошибка удаления урока:', error)
+      // Восстанавливаем список при ошибке
+      setLessons(previousLessons)
       alert('Ошибка удаления урока')
     }
   }
@@ -213,7 +219,7 @@ export default function AdminLessonsPage() {
                   Создать урок
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              <DialogContent className="max-w-[95vw] sm:max-w-3xl max-h-[90vh] overflow-y-auto w-full">
                 <DialogHeader>
                   <DialogTitle>
                     {editingLesson ? 'Редактировать урок' : 'Создать урок'}
@@ -231,6 +237,7 @@ export default function AdminLessonsPage() {
                       value={formData.number}
                       onChange={(e) => setFormData({ ...formData, number: e.target.value })}
                       required
+                      className="w-full max-w-full"
                     />
                   </div>
                   <div>
@@ -240,13 +247,14 @@ export default function AdminLessonsPage() {
                       value={formData.topic}
                       onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
                       required
+                      className="w-full max-w-full"
                     />
                   </div>
                   <div>
                     <Label htmlFor="content">Содержание</Label>
                     <textarea
                       id="content"
-                      className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="flex min-h-[100px] w-full max-w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-wrap resize-y"
                       value={formData.content}
                       onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                       placeholder="Описание урока..."
@@ -258,14 +266,14 @@ export default function AdminLessonsPage() {
                     <Label className="text-base font-semibold mb-2 block">Фотографии</Label>
                     <div className="space-y-2">
                       <FileList files={formData.images} onRemove={removeImage} />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Input
                           type="url"
                           placeholder="Или введите URL изображения"
                           value={newImageUrl}
                           onChange={(e) => setNewImageUrl(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addImage())}
-                          className="flex-1"
+                          className="flex-1 min-w-0"
                         />
                         <Button type="button" onClick={addImage} variant="outline" size="sm">
                           Добавить URL
@@ -288,14 +296,14 @@ export default function AdminLessonsPage() {
                     <Label className="text-base font-semibold mb-2 block">Документы</Label>
                     <div className="space-y-2">
                       <FileList files={formData.documents} onRemove={removeDocument} />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Input
                           type="url"
                           placeholder="Или введите URL документа"
                           value={newDocumentUrl}
                           onChange={(e) => setNewDocumentUrl(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addDocument())}
-                          className="flex-1"
+                          className="flex-1 min-w-0"
                         />
                         <Button type="button" onClick={addDocument} variant="outline" size="sm">
                           Добавить URL
@@ -315,14 +323,14 @@ export default function AdminLessonsPage() {
                     <Label className="text-base font-semibold mb-2 block">Видеофайлы</Label>
                     <div className="space-y-2">
                       <FileList files={formData.video_files} onRemove={removeVideo} />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         <Input
                           type="url"
                           placeholder="Или введите URL видеофайла"
                           value={newVideoUrl}
                           onChange={(e) => setNewVideoUrl(e.target.value)}
                           onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addVideo())}
-                          className="flex-1"
+                          className="flex-1 min-w-0"
                         />
                         <Button type="button" onClick={addVideo} variant="outline" size="sm">
                           Добавить URL
@@ -355,8 +363,8 @@ export default function AdminLessonsPage() {
             <Card key={lesson.id}>
               <CardHeader>
                 <CardTitle>Урок {lesson.number}: {lesson.topic}</CardTitle>
-                <CardDescription>
-                  {lesson.content?.substring(0, 100)}...
+                <CardDescription className="text-wrap">
+                  {lesson.content ? (lesson.content.length > 100 ? lesson.content.substring(0, 100) + '...' : lesson.content) : 'Нет описания'}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex gap-2">

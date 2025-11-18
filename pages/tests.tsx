@@ -12,7 +12,7 @@ import Link from 'next/link'
  * Страница со списком тестов
  */
 export default function TestsPage() {
-  const { isAuth, user } = useAuth()
+  const { isAuth, user, loading: authLoading } = useAuth()
   const router = useRouter()
   const [tests, setTests] = useState<Test[]>([])
   const [attempts, setAttempts] = useState<TestAttempt[]>([])
@@ -21,7 +21,11 @@ export default function TestsPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    if (!isAuth) return
+    if (authLoading) return
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadData = async () => {
       try {
@@ -41,7 +45,11 @@ export default function TestsPage() {
     }
 
     loadData()
-  }, [isAuth])
+  }, [isAuth, authLoading])
+
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
 
   if (!isAuth) {
     return (
@@ -78,7 +86,7 @@ export default function TestsPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2 text-gradient flex items-center gap-3">

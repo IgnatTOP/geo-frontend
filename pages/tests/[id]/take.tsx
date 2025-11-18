@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
-import { getTest, createTestAttempt } from '@/services/tests'
+import { getTest, createTestAttempt, getMyTestAttempts } from '@/services/tests'
 import type { Test, TestQuestion } from '@/services/tests'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -14,21 +14,41 @@ import Link from 'next/link'
 export default function TakeTestPage() {
   const router = useRouter()
   const { id } = router.query
-  const { isAuth } = useAuth()
+  const { isAuth, loading: authLoading } = useAuth()
   const [test, setTest] = useState<Test | null>(null)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [result, setResult] = useState<any>(null)
+  const [hasPreviousAttempt, setHasPreviousAttempt] = useState(false)
+  const [previousAttempt, setPreviousAttempt] = useState<any>(null)
 
   useEffect(() => {
-    if (!isAuth || !id) return
+    // Ждем завершения загрузки авторизации и получения id из роутера
+    if (authLoading || !id) return
+
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadTest = async () => {
       try {
         const data = await getTest(Number(id))
         setTest(data)
+        
+        // Проверяем наличие предыдущих попыток
+        try {
+          const attempts = await getMyTestAttempts()
+          const testAttempts = attempts.filter(a => a.test_id === Number(id))
+          if (testAttempts.length > 0) {
+            setHasPreviousAttempt(true)
+            setPreviousAttempt(testAttempts[testAttempts.length - 1]) // Берем последнюю попытку
+          }
+        } catch (error) {
+          console.error('Ошибка загрузки попыток:', error)
+        }
       } catch (error) {
         console.error('Ошибка загрузки теста:', error)
       } finally {
@@ -37,7 +57,7 @@ export default function TakeTestPage() {
     }
 
     loadTest()
-  }, [isAuth, id])
+  }, [isAuth, id, authLoading])
 
   const handleAnswerChange = (questionId: number, answerIndex: number) => {
     setAnswers({ ...answers, [questionId.toString()]: answerIndex })
@@ -58,9 +78,12 @@ export default function TakeTestPage() {
       const attempt = await createTestAttempt(test.id, answersJson)
       setResult(attempt)
       setSubmitted(true)
-    } catch (error) {
+      setHasPreviousAttempt(true)
+      setPreviousAttempt(attempt)
+    } catch (error: any) {
       console.error('Ошибка отправки теста:', error)
-      alert('Ошибка отправки теста')
+      const errorMessage = error.response?.data?.error || 'Ошибка отправки теста'
+      alert(errorMessage)
     } finally {
       setSubmitting(false)
     }
@@ -81,7 +104,7 @@ export default function TakeTestPage() {
     )
   }
 
-  if (loading) {
+  if (authLoading || loading) {
     return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
   }
 
@@ -100,6 +123,42 @@ export default function TakeTestPage() {
     )
   }
 
+  // Проверяем, можно ли проходить тест
+  if (hasPreviousAttempt && !test.allow_retake) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-2xl w-full border-2 border-primary/20">
+          <CardHeader className="text-center pb-4">
+            <CardTitle className="text-2xl">Тест уже пройден</CardTitle>
+            <CardDescription>
+              {test.title}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="text-center p-6 rounded-lg bg-muted/50">
+              <p className="text-lg font-semibold mb-2">
+                Ваш результат: {previousAttempt.score.toFixed(1)}%
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Повторное прохождение этого теста запрещено администратором.
+              </p>
+            </div>
+            <div className="flex gap-4">
+              <Link href={`/lessons/${test.lesson_id}`} className="flex-1">
+                <Button variant="outline" className="w-full">
+                  Вернуться к уроку
+                </Button>
+              </Link>
+              <Link href="/tests" className="flex-1">
+                <Button className="w-full">К списку тестов</Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   if (submitted && result) {
     const score = result.score
     const isExcellent = score >= 90
@@ -107,7 +166,7 @@ export default function TakeTestPage() {
     const bgColor = isExcellent ? 'from-green-500/20 to-emerald-500/20' : isGood ? 'from-blue-500/20 to-cyan-500/20' : 'from-orange-500/20 to-red-500/20'
     
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="max-w-2xl w-full border-2 border-primary/20 shadow-2xl">
           <CardHeader className="text-center pb-4">
             <div className={`w-24 h-24 rounded-full mx-auto mb-4 bg-gradient-to-br ${bgColor} flex items-center justify-center shadow-glow`}>
@@ -151,7 +210,7 @@ export default function TakeTestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="mb-6">
           <Link href={test.lesson_id ? `/lessons/${test.lesson_id}` : '/tests'}>

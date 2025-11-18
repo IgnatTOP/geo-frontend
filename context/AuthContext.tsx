@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   isAuth: boolean
-  login: (user: User) => void
+  login: (user: User) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
 }
@@ -41,6 +41,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             setUser(null)
           }
         }
+      } else {
+        // Если токена нет, убеждаемся что пользователь не установлен
+        if (isMounted) {
+          setUser(null)
+        }
       }
       if (isMounted) {
         setLoading(false)
@@ -54,13 +59,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [])
 
-  const login = (userData: User) => {
+  const login = async (userData: User) => {
     setUser(userData)
+    // После установки пользователя из ответа, обновляем из API для гарантии актуальности
+    try {
+      const currentUser = await getCurrentUser()
+      setUser(currentUser)
+    } catch (error) {
+      // Если не удалось загрузить, оставляем данные из ответа
+      console.error('Ошибка обновления пользователя после входа:', error)
+    }
   }
 
   const logout = () => {
     logoutService()
     setUser(null)
+    // Полная очистка состояния при выходе
+    if (typeof window !== 'undefined') {
+      // Очищаем все возможные кэшированные данные
+      localStorage.clear()
+      sessionStorage.clear()
+    }
   }
 
   const refreshUser = async () => {

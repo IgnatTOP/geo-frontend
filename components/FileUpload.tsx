@@ -101,24 +101,65 @@ interface FileListProps {
 export function FileList({ files, onRemove, label = 'Файлы' }: FileListProps) {
   if (files.length === 0) return null
 
+  const isImageUrl = (url: string): boolean => {
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp']
+    const lowerUrl = url.toLowerCase()
+    return imageExtensions.some(ext => lowerUrl.includes(ext)) || 
+           lowerUrl.startsWith('data:image/') ||
+           lowerUrl.includes('/images/')
+  }
+
+  const normalizeFileUrl = (url: string): string => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url
+    }
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ignattop-geo-backend-fb1b.twc1.net/api/v1'
+    if (url.startsWith('/uploads/')) {
+      return `${API_URL.replace('/api/v1', '')}${url}`
+    }
+    return `${API_URL.replace('/api/v1', '')}/uploads${url.startsWith('/') ? '' : '/'}${url}`
+  }
+
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
       <div className="space-y-2">
-        {files.map((url, index) => (
-          <div key={index} className="flex items-center justify-between rounded-md border p-2">
-            <span className="text-sm truncate flex-1">{url}</span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => onRemove(index)}
-              className="ml-2 flex-shrink-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-        ))}
+        {files.map((url, index) => {
+          const normalizedUrl = normalizeFileUrl(url)
+          const isImage = isImageUrl(url)
+          return (
+            <div key={index} className="flex items-start gap-3 rounded-md border p-2 hover:bg-muted/50 transition-colors">
+              {isImage && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={normalizedUrl}
+                    alt={`Превью ${index + 1}`}
+                    className="w-16 h-16 object-cover rounded border"
+                    onError={(e) => {
+                      // Если изображение не загрузилось, скрываем превью
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <span className="text-sm truncate block">{url}</span>
+                {isImage && (
+                  <span className="text-xs text-muted-foreground">Изображение</span>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onRemove(index)}
+                className="flex-shrink-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

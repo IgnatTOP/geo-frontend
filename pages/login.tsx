@@ -33,7 +33,7 @@ export default function LoginPage() {
 
     try {
       const response = await login({ email, password })
-      setUser(response.user)
+      await setUser(response.user)
       router.push('/profile')
     } catch (err: any) {
       setError(err.response?.data?.error || 'Ошибка входа')
@@ -51,7 +51,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md border-2 border-primary/20 shadow-2xl">
         <CardHeader className="text-center pb-6">
           <div className="w-16 h-16 rounded-full gradient-primary mx-auto mb-4 flex items-center justify-center shadow-glow">

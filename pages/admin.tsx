@@ -43,7 +43,7 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2 text-gradient">Админ панель</h1>

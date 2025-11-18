@@ -20,8 +20,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--muted) / 0.5) 50%, hsl(var(--background)) 100%);
-  background-attachment: fixed;
+  background: hsl(var(--background));
   min-height: 100vh;
   position: relative;
 }
@@ -338,4 +337,33 @@ a.link-underline:hover::after {
     hsl(var(--muted) / 0.3) 100%);
   background-size: 1000px 100%;
   animation: shimmer 2s infinite linear;
+}
+
+/* Word wrap и обрезка длинных текстов */
+.text-wrap {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-scrollable {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Для длинных строк без пробелов */
+.text-break-all {
+  word-break: break-all;
+  overflow-wrap: anywhere;
 }

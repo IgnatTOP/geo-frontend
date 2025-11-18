@@ -34,7 +34,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       {/* Основной контент */}
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-16 animate-fade-in">
@@ -113,11 +113,11 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {facts.map((fact, index) => (
-                <Card 
-                  key={fact.id} 
-                  className="card-hover overflow-hidden border-2 border-primary/10 hover:border-primary/30"
-                  style={{ animationDelay: `${index * 0.1}s` }}
-                >
+                <Link key={fact.id} href={`/facts/${fact.id}`}>
+                  <Card 
+                    className="card-hover overflow-hidden border-2 border-primary/10 hover:border-primary/30 cursor-pointer"
+                    style={{ animationDelay: `${index * 0.1}s` }}
+                  >
                   {fact.image_url && (
                     <div className="relative overflow-hidden">
                       <img
@@ -132,9 +132,10 @@ export default function Home() {
                     <CardTitle className="text-xl">{fact.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">{fact.content}</p>
+                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed text-wrap">{fact.content}</p>
                   </CardContent>
                 </Card>
+                </Link>
               ))}
             </div>
           </div>

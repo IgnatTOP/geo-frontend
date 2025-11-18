@@ -17,7 +17,7 @@ import Link from 'next/link'
 export default function PracticeDetailPage() {
   const router = useRouter()
   const { id } = router.query
-  const { isAuth } = useAuth()
+  const { isAuth, loading: authLoading } = useAuth()
   const [practice, setPractice] = useState<Practice | null>(null)
   const [submits, setSubmits] = useState<PracticeSubmit[]>([])
   const [fileUrl, setFileUrl] = useState('')
@@ -25,7 +25,13 @@ export default function PracticeDetailPage() {
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
-    if (!isAuth || !id) return
+    // Ждем завершения загрузки авторизации и получения id из роутера
+    if (authLoading || !id) return
+
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadData = async () => {
       try {
@@ -43,7 +49,7 @@ export default function PracticeDetailPage() {
     }
 
     loadData()
-  }, [isAuth, id])
+  }, [isAuth, id, authLoading])
 
   const handleSubmit = async () => {
     if (!practice || !fileUrl) {
@@ -68,6 +74,10 @@ export default function PracticeDetailPage() {
     }
   }
 
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
+
   if (!isAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -81,10 +91,6 @@ export default function PracticeDetailPage() {
         </Card>
       </div>
     )
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
   }
 
   if (!practice) {
@@ -105,7 +111,7 @@ export default function PracticeDetailPage() {
   const mySubmit = submits.find((s) => s.practice_id === practice.id)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="mb-6">
           <Link href={practice.lesson_id ? `/lessons/${practice.lesson_id}` : '/practices'}>

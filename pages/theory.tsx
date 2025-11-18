@@ -18,7 +18,7 @@ import Link from 'next/link'
  * Страница теории: уроки, доклады, видео, факты
  */
 export default function TheoryPage() {
-  const { isAuth } = useAuth()
+  const { isAuth, loading: authLoading } = useAuth()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [reports, setReports] = useState<Report[]>([])
   const [videos, setVideos] = useState<Video[]>([])
@@ -28,7 +28,11 @@ export default function TheoryPage() {
   const [filterTopic, setFilterTopic] = useState<string>('')
 
   useEffect(() => {
-    if (!isAuth) return
+    if (authLoading) return
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadData = async () => {
       try {
@@ -50,7 +54,11 @@ export default function TheoryPage() {
     }
 
     loadData()
-  }, [isAuth])
+  }, [isAuth, authLoading])
+
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
 
   if (!isAuth) {
     return (
@@ -84,7 +92,7 @@ export default function TheoryPage() {
   const topics = Array.from(new Set(lessons.map(l => l.topic.split(':')[0].trim() || l.topic.split(' ')[0])))
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2 text-gradient flex items-center gap-3">
@@ -432,7 +440,7 @@ export default function TheoryPage() {
                   <CardTitle>{fact.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">{fact.content}</p>
+                  <p className="text-sm text-muted-foreground text-wrap">{fact.content}</p>
                 </CardContent>
               </Card>
             ))}

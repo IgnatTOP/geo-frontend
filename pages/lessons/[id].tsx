@@ -6,6 +6,7 @@ import type { Lesson } from '@/services/lessons'
 import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import DocumentViewer from '@/components/DocumentViewer'
 import Link from 'next/link'
 
 /**
@@ -14,14 +15,19 @@ import Link from 'next/link'
 export default function LessonDetailPage() {
   const router = useRouter()
   const { id } = router.query
-  const { isAuth } = useAuth()
+  const { isAuth, loading: authLoading } = useAuth()
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
-  
-  // Используем router для навигации
+  const [viewingDocument, setViewingDocument] = useState<{ url: string; title: string } | null>(null)
 
   useEffect(() => {
-    if (!isAuth || !id) return
+    // Ждем завершения загрузки авторизации и получения id из роутера
+    if (authLoading || !id) return
+
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadLesson = async () => {
       try {
@@ -35,7 +41,11 @@ export default function LessonDetailPage() {
     }
 
     loadLesson()
-  }, [isAuth, id])
+  }, [isAuth, id, authLoading])
+
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
 
   if (!isAuth) {
     return (
@@ -52,9 +62,6 @@ export default function LessonDetailPage() {
     )
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
-  }
 
   if (!lesson) {
     return (
@@ -72,7 +79,7 @@ export default function LessonDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         {/* Заголовок урока */}
         <div className="mb-12 animate-fade-in">
@@ -97,9 +104,9 @@ export default function LessonDetailPage() {
             </div>
             {lesson.content && (
               <div className="prose max-w-none mt-6">
-                <p className="text-lg text-foreground/90 leading-relaxed whitespace-pre-line">
+                <div className="text-lg text-foreground/90 leading-relaxed whitespace-pre-line text-wrap text-scrollable">
                   {lesson.content}
-                </p>
+                </div>
               </div>
             )}
 
@@ -146,23 +153,22 @@ export default function LessonDetailPage() {
                       <div className="space-y-2">
                         {documents.map((docUrl, index) => {
                           const normalizedUrl = normalizeFileUrl(docUrl) || docUrl
+                          const fileName = docUrl.split('/').pop() || `Документ ${index + 1}`
                           return (
-                          <a
+                          <div
                             key={index}
-                            href={normalizedUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            download
-                            className="flex items-center gap-3 p-4 rounded-lg border-2 border-primary/10 hover:border-primary/30 hover:bg-primary/5 transition-all"
+                            onClick={() => setViewingDocument({ url: normalizedUrl, title: fileName })}
+                            className="flex items-center gap-3 p-4 rounded-lg border-2 border-primary/10 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer"
                           >
                             <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                             </svg>
-                            <span className="flex-1">Документ {index + 1}</span>
+                            <span className="flex-1 text-wrap">{fileName}</span>
                             <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                             </svg>
-                          </a>
+                          </div>
                           )
                         })}
                       </div>
@@ -362,6 +368,15 @@ export default function LessonDetailPage() {
             </Card>
           )}
       </div>
+      
+      {/* Просмотрщик документов */}
+      {viewingDocument && (
+        <DocumentViewer
+          url={viewingDocument.url}
+          title={viewingDocument.title}
+          onClose={() => setViewingDocument(null)}
+        />
+      )}
     </div>
   )
 }

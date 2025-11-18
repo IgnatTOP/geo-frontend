@@ -12,7 +12,7 @@ import Link from 'next/link'
  * Страница с лентой фактов (новостной блог)
  */
 export default function FactsPage() {
-  const { isAuth } = useAuth()
+  const { isAuth, loading: authLoading } = useAuth()
   const [facts, setFacts] = useState<Fact[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -25,7 +25,11 @@ export default function FactsPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    if (!isAuth) return
+    if (authLoading) return
+    if (!isAuth) {
+      setLoading(false)
+      return
+    }
 
     const loadFacts = async () => {
       setLoading(true)
@@ -41,7 +45,11 @@ export default function FactsPage() {
     }
 
     loadFacts()
-  }, [isAuth, page])
+  }, [isAuth, page, authLoading])
+
+  if (authLoading || loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
 
   if (!isAuth) {
     return (
@@ -58,9 +66,6 @@ export default function FactsPage() {
     )
   }
 
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
-  }
 
   const filteredFacts = facts.filter(fact => 
     !searchQuery || 
@@ -69,7 +74,7 @@ export default function FactsPage() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-10">
           <h1 className="text-4xl font-bold mb-2 text-gradient flex items-center gap-3">
@@ -91,11 +96,11 @@ export default function FactsPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredFacts.map((fact, index) => (
-            <Card 
-              key={fact.id} 
-              className="card-hover overflow-hidden border-2 border-primary/10 hover:border-primary/40"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
+            <Link key={fact.id} href={`/facts/${fact.id}`}>
+              <Card 
+                className="card-hover overflow-hidden border-2 border-primary/10 hover:border-primary/40 cursor-pointer"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
               {fact.image_url && (
                 <div className="relative overflow-hidden">
                   <img
@@ -110,7 +115,7 @@ export default function FactsPage() {
                 <CardTitle className="text-xl">{fact.title}</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed line-clamp-4">
+                <p className="text-sm text-muted-foreground whitespace-pre-line leading-relaxed line-clamp-4 text-wrap">
                   {fact.content}
                 </p>
                 <div className="mt-4 pt-4 border-t border-primary/10 flex items-center justify-between">
@@ -129,6 +134,7 @@ export default function FactsPage() {
                 </div>
               </CardContent>
             </Card>
+            </Link>
           ))}
         </div>
 
