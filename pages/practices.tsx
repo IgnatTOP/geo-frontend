@@ -1,0 +1,204 @@
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
+import { useAuth } from '@/context/AuthContext'
+import { getPractices, getMyPracticeSubmits, getMyPracticeGrades } from '@/services/practices'
+import type { Practice, PracticeSubmit, PracticeGrade } from '@/services/practices'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import SearchBar from '@/components/SearchBar'
+import Link from 'next/link'
+
+/**
+ * Страница со списком практических заданий
+ */
+export default function PracticesPage() {
+  const { isAuth } = useAuth()
+  const router = useRouter()
+  const [practices, setPractices] = useState<Practice[]>([])
+  const [submits, setSubmits] = useState<PracticeSubmit[]>([])
+  const [grades, setGrades] = useState<PracticeGrade[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  useEffect(() => {
+    if (!isAuth) return
+
+    const loadData = async () => {
+      try {
+        const [practicesData, submitsData, gradesData] = await Promise.all([
+          getPractices(),
+          getMyPracticeSubmits(),
+          getMyPracticeGrades(),
+        ])
+        setPractices(practicesData)
+        setSubmits(submitsData)
+        setGrades(gradesData)
+      } catch (error) {
+        console.error('Ошибка загрузки данных:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [isAuth])
+
+  if (!isAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-center mb-4">Необходима авторизация</p>
+            <Link href="/login">
+              <Button className="w-full">Войти</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+  }
+
+  const getPracticeSubmit = (practiceId: number) => {
+    return submits.find((s) => s.practice_id === practiceId)
+  }
+
+  const getPracticeGrade = (practiceId: number) => {
+    return grades.find((g) => g.practice_id === practiceId)
+  }
+
+  const filteredPractices = practices.filter(practice => 
+    !searchQuery || 
+    practice.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    practice.lesson?.topic.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
+      <div className="container mx-auto px-4 py-8">
+        <div className="mb-10">
+          <h1 className="text-4xl font-bold mb-2 text-gradient flex items-center gap-3">
+            <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Практические задания
+          </h1>
+          <p className="text-muted-foreground text-lg">Выполняйте практические работы</p>
+        </div>
+
+        <div className="mb-6">
+          <SearchBar 
+            placeholder="Поиск по названию задания, уроку..." 
+            onSearch={setSearchQuery}
+            className="max-w-2xl"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {filteredPractices.map((practice, index) => {
+            const submit = getPracticeSubmit(practice.id)
+            const grade = getPracticeGrade(practice.id)
+
+            return (
+              <Card 
+                key={practice.id} 
+                className="card-hover border-2 border-primary/10 hover:border-primary/40"
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="w-10 h-10 rounded-lg gradient-primary flex items-center justify-center text-white font-bold shadow-glow">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </div>
+                    {submit && (
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-500/10 text-blue-600">
+                        Отправлено
+                      </span>
+                    )}
+                  </div>
+                  <CardTitle className="text-xl">{practice.title}</CardTitle>
+                  <CardDescription className="mt-2">
+                    {practice.lesson ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        Урок {practice.lesson.number}: {practice.lesson.topic}
+                      </span>
+                    ) : (
+                      <span>Без урока</span>
+                    )}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {submit && (
+                    <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                      <p className="text-sm text-blue-600">Отправлено: {new Date(submit.created_at).toLocaleDateString()}</p>
+                    </div>
+                  )}
+                  {grade && (
+                    <div className="p-3 bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm font-semibold text-primary">
+                        Оценка преподавателя: {grade.grade}
+                      </p>
+                      {grade.comment && (
+                        <p className="text-xs text-muted-foreground mt-1">{grade.comment}</p>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    {practice.file_url && (
+                      <a href={practice.file_url} target="_blank" rel="noopener noreferrer">
+                        <Button variant="outline" className="flex-1 hover:bg-primary/10">
+                          Скачать
+                        </Button>
+                      </a>
+                    )}
+                    <Button
+                      className="flex-1 gradient-primary shadow-glow"
+                      onClick={() => {
+                        if (practice.lesson_id) {
+                          router.push(`/lessons/${practice.lesson_id}`)
+                        } else {
+                          router.push(`/practices/${practice.id}`)
+                        }
+                      }}
+                    >
+                      {submit ? 'Посмотреть' : practice.lesson_id ? 'К уроку' : 'Отправить'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
+          })}
+        </div>
+
+        {filteredPractices.length === 0 && practices.length > 0 && (
+          <Card className="border-2 border-primary/20">
+            <CardContent className="p-12 text-center">
+              <svg className="w-16 h-16 text-muted-foreground mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-muted-foreground text-lg">Практические задания не найдены</p>
+              <p className="text-sm text-muted-foreground mt-2">Попробуйте изменить параметры поиска</p>
+            </CardContent>
+          </Card>
+        )}
+
+        {practices.length === 0 && (
+          <Card className="border-2 border-primary/20">
+            <CardContent className="p-6 text-center">
+              <p className="text-muted-foreground">Практические задания пока не добавлены</p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+    </div>
+  )
+}
+
