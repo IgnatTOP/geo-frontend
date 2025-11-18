@@ -25,19 +25,33 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Загрузка пользователя при монтировании
   useEffect(() => {
+    let isMounted = true
+    
     const loadUser = async () => {
       if (isAuthenticated()) {
         try {
           const currentUser = await getCurrentUser()
-          setUser(currentUser)
+          if (isMounted) {
+            setUser(currentUser)
+          }
         } catch (error) {
           // Токен невалиден
-          Cookies.remove('token')
+          if (isMounted) {
+            Cookies.remove('token')
+            setUser(null)
+          }
         }
       }
-      setLoading(false)
+      if (isMounted) {
+        setLoading(false)
+      }
     }
+    
     loadUser()
+    
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const login = (userData: User) => {
@@ -55,7 +69,9 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const currentUser = await getCurrentUser()
         setUser(currentUser)
       } catch (error) {
-        logout()
+        // Токен невалиден, очищаем состояние
+        Cookies.remove('token')
+        setUser(null)
       }
     }
   }

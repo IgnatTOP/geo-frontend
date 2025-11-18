@@ -2,7 +2,7 @@ import axios from 'axios'
 import Cookies from 'js-cookie'
 
 // Базовый URL API
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://ignattop-geo-backend-fb1b.twc1.net/api/v1'
 
 // Создаем экземпляр axios с базовой конфигурацией
 const api = axios.create({
@@ -33,9 +33,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Токен невалиден или истек
       Cookies.remove('token')
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
+      // Не делаем редирект здесь, чтобы избежать бесконечных циклов
+      // Редирект должен обрабатываться на уровне компонентов
     }
     return Promise.reject(error)
   }
