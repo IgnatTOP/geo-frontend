@@ -11,7 +11,7 @@ import SearchBar from '@/components/SearchBar'
 import Link from 'next/link'
 
 /**
- * Страница с лентой фактов (новостной блог)
+ * Страница с лентой фактов (новостной блог11s)
  */
 export default function FactsPage() {
   const { isAuth, loading: authLoading } = useAuth()
