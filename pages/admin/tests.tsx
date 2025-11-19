@@ -38,6 +38,7 @@ export default function AdminTestsPage() {
     if (!isAuth || user?.role !== 'admin') return
     loadLessons()
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuth, user, activeTab])
 
   const loadLessons = async () => {
@@ -387,7 +388,7 @@ export default function AdminTestsPage() {
                         
                         {formData.questions.length === 0 && (
                           <p className="text-muted-foreground text-center py-8">
-                            Нажмите "Добавить вопрос" чтобы создать первый вопрос
+                            Нажмите &ldquo;Добавить вопрос&rdquo; чтобы создать первый вопрос
                           </p>
                         )}
                       </div>
@@ -408,6 +409,9 @@ export default function AdminTestsPage() {
                 <Card key={test.id}>
                   <CardHeader>
                     <CardTitle>{test.title}</CardTitle>
+                    <CardDescription>
+                      {test.description || 'Нет описания'}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <Button
@@ -421,20 +425,29 @@ export default function AdminTestsPage() {
                 </Card>
               ))}
             </div>
+            {tests.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Тесты пока не добавлены</p>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
         {/* Список попыток */}
         {activeTab === 'attempts' && (
           <div className="space-y-4">
-            {attempts.map((attempt) => (
+            {attempts.map((attempt: any) => (
               <Card key={attempt.id}>
                 <CardHeader>
                   <CardTitle>
                     Тест: {attempt.test?.title || 'Неизвестный тест'}
                   </CardTitle>
                   <CardDescription>
-                    Пользователь ID: {attempt.user_id} | Балл: {attempt.score.toFixed(1)}%
+                    Пользователь: {attempt.user?.name || 'ID: ' + attempt.user_id} ({attempt.user?.email || ''}) | 
+                    Балл: {attempt.score.toFixed(1)}% | 
+                    Дата: {new Date(attempt.created_at).toLocaleDateString('ru-RU')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -444,6 +457,13 @@ export default function AdminTestsPage() {
                 </CardContent>
               </Card>
             ))}
+            {attempts.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Попыток пока нет</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 

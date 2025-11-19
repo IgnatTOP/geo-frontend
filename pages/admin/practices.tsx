@@ -33,6 +33,7 @@ export default function AdminPracticesPage() {
     if (!isAuth || user?.role !== 'admin') return
     loadLessons()
     loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuth, user, activeTab])
 
   const loadLessons = async () => {
@@ -242,15 +243,23 @@ export default function AdminPracticesPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {practices.map((practice) => (
+              {practices.map((practice: any) => (
                 <Card key={practice.id}>
                   <CardHeader>
                     <CardTitle>{practice.title}</CardTitle>
                     <CardDescription>
-                      Урок ID: {practice.lesson_id}
+                      {practice.lesson ? `Урок ${practice.lesson.number}: ${practice.lesson.topic}` : `Урок ID: ${practice.lesson_id}`}
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="space-y-2">
+                    {practice.file_url && (() => {
+                      const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+                      return (
+                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
+                          <Button variant="outline" className="w-full">Файл задания</Button>
+                        </a>
+                      )
+                    })()}
                     <Button
                       variant="destructive"
                       onClick={() => handleDelete(practice.id)}
@@ -262,20 +271,34 @@ export default function AdminPracticesPage() {
                 </Card>
               ))}
             </div>
+            {practices.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Практики пока не добавлены</p>
+                </CardContent>
+              </Card>
+            )}
           </>
         )}
 
         {/* Список отправок */}
         {activeTab === 'submits' && (
           <div className="space-y-4">
-            {submits.map((submit) => (
+            {submits.map((submit: any) => (
               <Card key={submit.id}>
                 <CardHeader>
                   <CardTitle>
                     {submit.practice?.title || 'Практика'}
                   </CardTitle>
                   <CardDescription>
-                    Пользователь ID: {submit.user_id} | {new Date(submit.created_at).toLocaleDateString()}
+                    Пользователь: {submit.user?.name || 'ID: ' + submit.user_id} ({submit.user?.email || ''}) | 
+                    Дата: {new Date(submit.created_at).toLocaleDateString('ru-RU', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="flex gap-2">
@@ -293,6 +316,13 @@ export default function AdminPracticesPage() {
                 </CardContent>
               </Card>
             ))}
+            {submits.length === 0 && (
+              <Card>
+                <CardContent className="p-6 text-center">
+                  <p className="text-muted-foreground">Отправок пока нет</p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         )}
 

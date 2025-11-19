@@ -24,6 +24,7 @@ export default function FileUpload({
 }: FileUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [uploadId] = useState(() => `file-upload-${Math.random().toString(36).substr(2, 9)}`)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,10 +59,10 @@ export default function FileUpload({
         accept={accept}
         onChange={handleFileSelect}
         className="hidden"
-        id={`file-upload-${Math.random()}`}
+        id={uploadId}
         disabled={uploading}
       />
-      <label htmlFor={`file-upload-${Math.random()}`}>
+      <label htmlFor={uploadId}>
         <Button
           type="button"
           variant="outline"
