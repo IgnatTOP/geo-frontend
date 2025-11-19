@@ -29,6 +29,19 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Валидация на клиенте
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Введите корректный email адрес')
+      return
+    }
+
+    if (password.length < 1) {
+      setError('Введите пароль')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -36,7 +49,8 @@ export default function LoginPage() {
       await setUser(response.user)
       router.push('/profile')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка входа')
+      const errorMessage = err.response?.data?.error || 'Неверный email или пароль'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

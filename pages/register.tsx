@@ -30,6 +30,24 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+
+    // Валидация на клиенте
+    if (name.trim().length < 2) {
+      setError('Имя должно содержать минимум 2 символа')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Пароль должен содержать минимум 6 символов')
+      return
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+      setError('Введите корректный email адрес')
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -37,7 +55,8 @@ export default function RegisterPage() {
       await setUser(response.user)
       router.push('/profile')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Ошибка регистрации')
+      const errorMessage = err.response?.data?.error || 'Ошибка регистрации. Попробуйте снова'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }

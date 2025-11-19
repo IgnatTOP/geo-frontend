@@ -30,11 +30,24 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: any) => response,
   (error: any) => {
+    // Обрабатываем различные типы ошибок
     if (error.response?.status === 401) {
       // Токен невалиден или истек
       Cookies.remove('token')
       // Не делаем редирект здесь, чтобы избежать бесконечных циклов
       // Редирект должен обрабатываться на уровне компонентов
+    } else if (error.response?.status === 403) {
+      // Недостаточно прав доступа
+      console.error('Недостаточно прав для выполнения операции')
+    } else if (error.response?.status === 404) {
+      // Ресурс не найден
+      console.error('Запрошенный ресурс не найден')
+    } else if (error.response?.status >= 500) {
+      // Ошибка сервера
+      console.error('Ошибка сервера. Попробуйте позже')
+    } else if (error.code === 'ECONNABORTED' || error.message === 'Network Error') {
+      // Проблемы с сетью
+      console.error('Ошибка сети. Проверьте подключение к интернету')
     }
     return Promise.reject(error)
   }

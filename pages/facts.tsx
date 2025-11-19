@@ -23,6 +23,7 @@ export default function FactsPage() {
     pages: 1
   })
   const [searchQuery, setSearchQuery] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     if (authLoading) return
@@ -33,12 +34,15 @@ export default function FactsPage() {
 
     const loadFacts = async () => {
       setLoading(true)
+      setError('')
       try {
         const data = await getFacts(page, 12)
-        setFacts(data.facts)
-        setPagination(data.pagination)
-      } catch (error) {
+        setFacts(data.facts || [])
+        setPagination(data.pagination || { page: 1, limit: 12, total: 0, pages: 1 })
+      } catch (error: any) {
         console.error('Ошибка загрузки фактов:', error)
+        setError(error.response?.data?.error || 'Не удалось загрузить факты')
+        setFacts([])
       } finally {
         setLoading(false)
       }
@@ -197,7 +201,23 @@ export default function FactsPage() {
           </div>
         )}
 
-        {facts.length === 0 && (
+        {error && (
+          <Card className="border-2 border-destructive/20 bg-destructive/5">
+            <CardContent className="p-12 text-center">
+              <div className="w-16 h-16 rounded-full bg-destructive/10 mx-auto mb-4 flex items-center justify-center">
+                <svg className="w-8 h-8 text-destructive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-destructive text-lg font-medium">{error}</p>
+              <Button onClick={() => setPage(page)} className="mt-4">
+                Попробовать снова
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {!error && facts.length === 0 && (
           <Card className="border-2 border-primary/20">
             <CardContent className="p-12 text-center">
               <div className="w-16 h-16 rounded-full bg-primary/10 mx-auto mb-4 flex items-center justify-center">
