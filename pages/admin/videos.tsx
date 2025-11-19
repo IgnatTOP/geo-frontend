@@ -25,7 +25,7 @@ export default function AdminVideosPage() {
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [editingVideo, setEditingVideo] = useState<Video | null>(null)
-  const [formData, setFormData] = useState({ lesson_id: '', title: '', url: '', type: 'youtube' })
+  const [formData, setFormData] = useState({ lesson_id: '', title: '', url: '', type: 'youtube' as 'youtube' | 'vimeo' | 'rutube' | 'direct' })
 
   useEffect(() => {
     if (!isAuth || user?.role !== 'admin') return
@@ -68,6 +68,9 @@ export default function AdminVideosPage() {
     }
     if (type === 'vimeo') {
       return /^https?:\/\/(www\.)?vimeo\.com\/.+/.test(url)
+    }
+    if (type === 'rutube') {
+      return /^https?:\/\/(www\.)?rutube\.ru\/video\/.+/.test(url)
     }
     // Для прямых ссылок проверяем базовый формат URL
     try {
@@ -241,10 +244,12 @@ export default function AdminVideosPage() {
                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
                         placeholder={
                           formData.type === 'youtube' 
-                            ? 'Или введите URL YouTube'
+                            ? 'Введите URL YouTube'
                             : formData.type === 'vimeo'
-                            ? 'Или введите URL Vimeo'
-                            : 'Или введите URL видеофайла'
+                            ? 'Введите URL Vimeo'
+                            : formData.type === 'rutube'
+                            ? 'Введите URL Rutube'
+                            : 'Введите URL видеофайла'
                         }
                       />
                       {formData.type === 'direct' && (
@@ -265,6 +270,11 @@ export default function AdminVideosPage() {
                           Пример: https://www.youtube.com/watch?v=dQw4w9WgXcQ
                         </p>
                       )}
+                      {formData.type === 'rutube' && (
+                        <p className="text-xs text-muted-foreground">
+                          Пример: https://rutube.ru/video/abc123...
+                        </p>
+                      )}
                       {formData.type === 'direct' && (
                         <p className="text-xs text-muted-foreground">
                           Загрузите файл или введите URL видеофайла
@@ -278,10 +288,11 @@ export default function AdminVideosPage() {
                       id="type"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                       value={formData.type}
-                      onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                      onChange={(e) => setFormData({ ...formData, type: e.target.value as 'youtube' | 'vimeo' | 'rutube' | 'direct' })}
                     >
                       <option value="youtube">YouTube</option>
                       <option value="vimeo">Vimeo</option>
+                      <option value="rutube">Rutube</option>
                       <option value="direct">Прямая ссылка</option>
                     </select>
                   </div>

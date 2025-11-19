@@ -84,23 +84,32 @@ export default function PracticesPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-10">
-          <h1 className="text-4xl font-bold mb-2 text-gradient flex items-center gap-3">
-            <svg className="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Практические задания
-          </h1>
-          <p className="text-muted-foreground text-lg">Выполняйте практические работы</p>
+      <div className="container mx-auto px-4 py-10">
+        {/* Hero секция */}
+        <div className="mb-12 animate-fade-in">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+              <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="section-title text-4xl md:text-5xl mb-1">
+                Практические работы
+              </h1>
+              <p className="text-muted-foreground text-lg">Закрепите знания на практике и получите обратную связь</p>
+            </div>
+          </div>
         </div>
 
-        <div className="mb-6">
-          <SearchBar 
-            placeholder="Поиск по названию задания, уроку..." 
-            onSearch={setSearchQuery}
-            className="max-w-2xl"
-          />
+        <div className="mb-8 animate-slide-in">
+          <div className="card-modern p-6">
+            <SearchBar 
+              placeholder="Поиск по названию задания, уроку..." 
+              onSearch={setSearchQuery}
+              className="w-full"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

@@ -33,6 +33,7 @@ export default function AdminTestsPage() {
     title: '', 
     description: '',
     type: 'single' as 'single' | 'multiple',
+    allow_retake: false,
     questions: [] as Array<{ question: string; options: string[]; correct_answer: number; order: number }>
   })
   const [gradeData, setGradeData] = useState({ user_id: '', test_id: '', attempt_id: '', grade: '', comment: '' })
@@ -139,11 +140,12 @@ export default function AdminTestsPage() {
         title: formData.title,
         description: formData.description,
         type: formData.type,
+        allow_retake: formData.allow_retake,
         questions: formData.questions,
       } as any)
       success('Тест успешно создан')
       setIsDialogOpen(false)
-      setFormData({ lesson_id: '', title: '', description: '', type: 'single', questions: [] })
+      setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
       loadData()
     } catch (error) {
       console.error('Ошибка создания теста:', error)
@@ -250,7 +252,7 @@ export default function AdminTestsPage() {
               <DialogTrigger asChild>
                 <Button onClick={() => {
                   setEditingTest(null)
-                  setFormData({ lesson_id: '', title: '', description: '', type: 'single', questions: [] })
+                  setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
                 }}>
                   Создать тест
                 </Button>
@@ -310,6 +312,19 @@ export default function AdminTestsPage() {
                         <option value="single">Один правильный ответ</option>
                         <option value="multiple">Несколько правильных ответов</option>
                       </select>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="allow_retake"
+                        checked={formData.allow_retake}
+                        onChange={(e) => setFormData({ ...formData, allow_retake: e.target.checked })}
+                        className="h-4 w-4 rounded border-gray-300"
+                      />
+                      <Label htmlFor="allow_retake" className="cursor-pointer font-normal">
+                        Разрешить пересдачу (студенты смогут проходить тест несколько раз)
+                      </Label>
                     </div>
                     
                     <div className="border-t pt-4">

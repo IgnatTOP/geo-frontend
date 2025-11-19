@@ -20,7 +20,6 @@ export default function LessonDetailPage() {
   const { isAuth, loading: authLoading } = useAuth()
   const [lesson, setLesson] = useState<Lesson | null>(null)
   const [loading, setLoading] = useState(true)
-  const [viewingDocument, setViewingDocument] = useState<{ url: string; title: string } | null>(null)
 
   useEffect(() => {
     // Ждем завершения загрузки авторизации и получения id из роутера
@@ -152,27 +151,23 @@ export default function LessonDetailPage() {
                 const documents = JSON.parse(lesson.documents) as string[]
                 if (documents && documents.length > 0) {
                   return (
-                    <div className="mt-6">
-                      <h3 className="text-xl font-semibold mb-4">Документы</h3>
-                      <div className="space-y-2">
+                    <div className="mt-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-2xl font-bold">Документы к уроку</h3>
+                      </div>
+                      <div className="space-y-6">
                         {documents.map((docUrl, index) => {
                           const normalizedUrl = normalizeFileUrl(docUrl) || docUrl
                           const fileName = docUrl.split('/').pop() || `Документ ${index + 1}`
                           return (
-                          <div
-                            key={index}
-                            onClick={() => setViewingDocument({ url: normalizedUrl, title: fileName })}
-                            className="flex items-center gap-3 p-4 rounded-lg border-2 border-primary/10 hover:border-primary/30 hover:bg-primary/5 transition-all cursor-pointer"
-                          >
-                            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                            </svg>
-                            <span className="flex-1 text-wrap">{fileName}</span>
-                            <svg className="w-5 h-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
-                          </div>
+                            <div key={index} className="animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                              <DocumentViewer url={normalizedUrl} filename={fileName} />
+                            </div>
                           )
                         })}
                       </div>
@@ -191,22 +186,169 @@ export default function LessonDetailPage() {
                 const videoFiles = JSON.parse(lesson.video_files) as string[]
                 if (videoFiles && videoFiles.length > 0) {
                   return (
-                    <div className="mt-6">
-                      <h3 className="text-xl font-semibold mb-4">Видеофайлы</h3>
-                      <div className="space-y-4">
+                    <div className="mt-8">
+                      <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <h3 className="text-2xl font-bold">Видеоматериалы к уроку</h3>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {videoFiles.map((videoUrl, index) => {
                           const normalizedUrl = normalizeFileUrl(videoUrl) || videoUrl
+                          
+                          // Определяем тип видео по URL
+                          const isYouTube = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/i.test(normalizedUrl)
+                          const isVimeo = /vimeo\.com\/(\d+)/i.test(normalizedUrl)
+                          const isRutube = /rutube\.ru\/video\/([a-zA-Z0-9]+)/i.test(normalizedUrl)
+                          
+                          // YouTube видео
+                          if (isYouTube) {
+                            const embedUrl = normalizedUrl
+                              .replace('watch?v=', 'embed/')
+                              .replace('youtu.be/', 'youtube.com/embed/')
+                            
+                            return (
+                              <div key={index} className="card-modern group overflow-hidden animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                                <div className="relative">
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <div className="badge-professional bg-red-500 text-white border-0">
+                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                      </svg>
+                                      YouTube
+                                    </div>
+                                  </div>
+                                  <div className="aspect-video">
+                                    <iframe
+                                      src={embedUrl}
+                                      className="w-full h-full"
+                                      allowFullScreen
+                                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                      title={`Видео ${index + 1}`}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="p-4 bg-gradient-to-r from-muted/30 to-transparent">
+                                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Видео {index + 1}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          // Vimeo видео
+                          if (isVimeo) {
+                            const vimeoMatch = normalizedUrl.match(/vimeo\.com\/(\d+)/i)
+                            const vimeoId = vimeoMatch ? vimeoMatch[1] : ''
+                            const embedUrl = `https://player.vimeo.com/video/${vimeoId}`
+                            
+                            return (
+                              <div key={index} className="card-modern group overflow-hidden animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                                <div className="relative">
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <div className="badge-professional bg-blue-500 text-white border-0">
+                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197c1.185-1.044 2.351-2.084 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.473.06 3.628 1.664 3.493 4.797l-.013.01z"/>
+                                      </svg>
+                                      Vimeo
+                                    </div>
+                                  </div>
+                                  <div className="aspect-video">
+                                    <iframe
+                                      src={embedUrl}
+                                      className="w-full h-full"
+                                      allowFullScreen
+                                      allow="autoplay; fullscreen; picture-in-picture"
+                                      title={`Видео ${index + 1}`}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="p-4 bg-gradient-to-r from-muted/30 to-transparent">
+                                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Видео {index + 1}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          // Rutube видео
+                          if (isRutube) {
+                            const rutubeMatch = normalizedUrl.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/i)
+                            const rutubeId = rutubeMatch ? rutubeMatch[1] : ''
+                            const embedUrl = `https://rutube.ru/play/embed/${rutubeId}`
+                            
+                            return (
+                              <div key={index} className="card-modern group overflow-hidden animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                                <div className="relative">
+                                  <div className="absolute top-3 left-3 z-10">
+                                    <div className="badge-professional bg-green-600 text-white border-0">
+                                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                                      </svg>
+                                      Rutube
+                                    </div>
+                                  </div>
+                                  <div className="aspect-video">
+                                    <iframe
+                                      src={embedUrl}
+                                      className="w-full h-full"
+                                      allowFullScreen
+                                      allow="clipboard-write; autoplay"
+                                      title={`Видео ${index + 1}`}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="p-4 bg-gradient-to-r from-muted/30 to-transparent">
+                                  <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    Видео {index + 1}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          
+                          // Прямая ссылка на видеофайл
                           return (
-                          <div key={index} className="rounded-lg overflow-hidden border-2 border-primary/10">
-                            <video
-                              src={normalizedUrl}
-                              controls
-                              className="w-full"
-                              preload="metadata"
-                            >
-                              Ваш браузер не поддерживает видео.
-                            </video>
-                          </div>
+                            <div key={index} className="card-modern overflow-hidden animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                              <video
+                                src={normalizedUrl}
+                                controls
+                                className="w-full"
+                                preload="metadata"
+                                controlsList="nodownload"
+                                onError={(e) => {
+                                  console.error('Ошибка загрузки видео:', normalizedUrl)
+                                  const target = e.target as HTMLVideoElement
+                                  target.parentElement!.innerHTML = `<div class="p-8 text-center text-muted-foreground">
+                                    <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <p class="font-semibold mb-2">Не удалось загрузить видео</p>
+                                    <p class="text-sm">Проверьте URL: ${normalizedUrl}</p>
+                                  </div>`
+                                }}
+                              >
+                                Ваш браузер не поддерживает видео.
+                              </video>
+                            </div>
                           )
                         })}
                       </div>
@@ -286,73 +428,122 @@ export default function LessonDetailPage() {
 
         {/* Видеоматериалы */}
         {lesson.videos && lesson.videos.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-              <span className="w-1 h-8 rounded-full gradient-primary"></span>
-              Видеоматериалы
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {lesson.videos.map((video: any) => (
-                <Card key={video.id} className="card-hover border-2 border-primary/10 hover:border-primary/40 overflow-hidden">
-                  <CardHeader>
-                    <CardTitle className="text-xl">{video.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    {video.type === 'youtube' && (
-                      <div className="aspect-video rounded-lg overflow-hidden shadow-lg">
-                        <iframe
-                          src={video.url.replace('watch?v=', 'embed/')}
-                          className="w-full h-full"
-                          allowFullScreen
-                        />
-                      </div>
-                    )}
-                    {video.type !== 'youtube' && (
-                      <a href={video.url} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" className="w-full hover:bg-primary/10">
-                          Открыть видео
-                        </Button>
-                      </a>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+          <section className="mb-10 animate-fade-in">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold">Видеоматериалы</h2>
+                <p className="text-sm text-muted-foreground">Дополнительные обучающие видео</p>
+              </div>
             </div>
-          </section>
-        )}
-
-        {/* Доклады */}
-        {lesson.reports && lesson.reports.length > 0 && (
-          <section className="mb-10">
-            <h2 className="text-3xl font-bold mb-6 flex items-center gap-3">
-              <span className="w-1 h-8 rounded-full gradient-primary"></span>
-              Доклады
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {lesson.reports.map((report: any) => (
-                <Card key={report.id} className="card-hover border-2 border-primary/10 hover:border-primary/40">
-                  <CardHeader>
-                    <CardTitle className="text-lg">{report.title}</CardTitle>
-                    <CardDescription className="flex items-center gap-2 mt-2">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                      </svg>
-                      {report.user?.name || 'Неизвестный автор'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {(() => {
-                      const normalizedUrl = normalizeFileUrl(report.file_url) || report.file_url
-                      return (
-                    <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
-                      <Button variant="outline" className="w-full hover:bg-primary/10">
-                        Открыть файл
-                      </Button>
-                    </a>
-                      )
-                    })()}
-                  </CardContent>
-                </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {lesson.videos.map((video: any, index: number) => (
+                <div key={video.id} className="card-modern group overflow-hidden animate-scale-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                  {video.type === 'youtube' && (
+                    <>
+                      <div className="relative">
+                        <div className="absolute top-3 left-3 z-10">
+                          <div className="badge-professional bg-red-500 text-white border-0">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            YouTube
+                          </div>
+                        </div>
+                        <div className="aspect-video">
+                          <iframe
+                            src={video.url.replace('watch?v=', 'embed/')}
+                            className="w-full h-full"
+                            allowFullScreen
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            title={video.title}
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg mb-1">{video.title}</h3>
+                        <p className="text-sm text-muted-foreground">Встроенное видео</p>
+                      </div>
+                    </>
+                  )}
+                  {video.type === 'vimeo' && (
+                    <>
+                      <div className="relative">
+                        <div className="absolute top-3 left-3 z-10">
+                          <div className="badge-professional bg-blue-500 text-white border-0">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M23.977 6.416c-.105 2.338-1.739 5.543-4.894 9.609-3.268 4.247-6.026 6.37-8.29 6.37-1.409 0-2.578-1.294-3.553-3.881L5.322 11.4C4.603 8.816 3.834 7.522 3.01 7.522c-.179 0-.806.378-1.881 1.132L0 7.197c1.185-1.044 2.351-2.084 3.501-3.128C5.08 2.701 6.266 1.984 7.055 1.91c1.867-.18 3.016 1.1 3.447 3.838.465 2.953.789 4.789.971 5.507.539 2.45 1.131 3.674 1.776 3.674.502 0 1.256-.796 2.265-2.385 1.004-1.589 1.54-2.797 1.612-3.628.144-1.371-.395-2.061-1.614-2.061-.574 0-1.167.121-1.777.391 1.186-3.868 3.434-5.757 6.762-5.637 2.473.06 3.628 1.664 3.493 4.797l-.013.01z"/>
+                            </svg>
+                            Vimeo
+                          </div>
+                        </div>
+                        <div className="aspect-video">
+                          <iframe
+                            src={video.url}
+                            className="w-full h-full"
+                            allowFullScreen
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            title={video.title}
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg mb-1">{video.title}</h3>
+                        <p className="text-sm text-muted-foreground">Встроенное видео</p>
+                      </div>
+                    </>
+                  )}
+                  {video.type === 'rutube' && (
+                    <>
+                      <div className="relative">
+                        <div className="absolute top-3 left-3 z-10">
+                          <div className="badge-professional bg-green-600 text-white border-0">
+                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                            </svg>
+                            Rutube
+                          </div>
+                        </div>
+                        <div className="aspect-video">
+                          <iframe
+                            src={video.url.replace('/video/', '/play/embed/')}
+                            className="w-full h-full"
+                            allowFullScreen
+                            allow="clipboard-write; autoplay"
+                            title={video.title}
+                          />
+                        </div>
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg mb-1">{video.title}</h3>
+                        <p className="text-sm text-muted-foreground">Встроенное видео</p>
+                      </div>
+                    </>
+                  )}
+                  {video.type === 'direct' && (
+                    <>
+                      <div className="p-4 pb-0">
+                        <h3 className="font-bold text-lg mb-1">{video.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-4">Прямая ссылка на видео</p>
+                      </div>
+                      <div className="p-4 pt-0">
+                        <a href={video.url} target="_blank" rel="noopener noreferrer">
+                          <Button className="w-full btn-professional">
+                            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            Открыть видео
+                          </Button>
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
               ))}
             </div>
           </section>
@@ -361,8 +552,7 @@ export default function LessonDetailPage() {
         {/* Если нет материалов */}
         {(!lesson.tests || lesson.tests.length === 0) &&
           (!lesson.practices || lesson.practices.length === 0) &&
-          (!lesson.videos || lesson.videos.length === 0) &&
-          (!lesson.reports || lesson.reports.length === 0) && (
+          (!lesson.videos || lesson.videos.length === 0) && (
             <Card>
               <CardContent className="p-6 text-center">
                 <p className="text-muted-foreground">
@@ -372,15 +562,6 @@ export default function LessonDetailPage() {
             </Card>
           )}
       </div>
-      
-      {/* Просмотрщик документов */}
-      {viewingDocument && (
-        <DocumentViewer
-          url={viewingDocument.url}
-          title={viewingDocument.title}
-          onClose={() => setViewingDocument(null)}
-        />
-      )}
     </div>
   )
 }

@@ -41,17 +41,17 @@ export default function Header() {
   }
 
   return (
-    <header className="border-b bg-card/95 backdrop-blur-md sticky top-0 z-50 shadow-md">
+    <header className="border-b bg-card sticky top-0 z-50 shadow-sm">
       <div className="container mx-auto px-2 sm:px-4">
         <div className="flex justify-between items-center h-14 sm:h-16">
           {/* Логотип и название */}
-          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-80 transition-opacity">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg gradient-primary flex items-center justify-center shadow-glow flex-shrink-0">
-              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <Link href="/" className="flex items-center gap-2 sm:gap-3 hover:opacity-90 transition-opacity">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded bg-primary flex items-center justify-center flex-shrink-0">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
-            <h1 className="text-base sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent hidden sm:block">
+            <h1 className="text-base sm:text-xl font-semibold text-foreground hidden sm:block">
               Учебный портал по географии
             </h1>
           </Link>
@@ -63,7 +63,7 @@ export default function Header() {
                 <Link href="/theory" className="flex-shrink-0">
                   <Button 
                     variant={router.pathname === '/theory' ? 'default' : 'ghost'} 
-                    className="hover:bg-primary/10"
+                    className="hover:bg-accent"
                     size="sm"
                   >
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -75,7 +75,7 @@ export default function Header() {
                 <Link href="/tests" className="flex-shrink-0">
                   <Button 
                     variant={router.pathname === '/tests' ? 'default' : 'ghost'} 
-                    className="hover:bg-primary/10"
+                    className="hover:bg-accent"
                     size="sm"
                   >
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -87,7 +87,7 @@ export default function Header() {
                 <Link href="/practices" className="flex-shrink-0">
                   <Button 
                     variant={router.pathname === '/practices' ? 'default' : 'ghost'} 
-                    className="hover:bg-primary/10"
+                    className="hover:bg-accent"
                     size="sm"
                   >
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -99,7 +99,7 @@ export default function Header() {
                 <Link href="/facts" className="flex-shrink-0">
                   <Button 
                     variant={router.pathname === '/facts' ? 'default' : 'ghost'} 
-                    className="hover:bg-primary/10"
+                    className="hover:bg-accent"
                     size="sm"
                   >
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -111,7 +111,7 @@ export default function Header() {
                 <Link href="/profile" className="flex-shrink-0">
                   <Button 
                     variant={router.pathname === '/profile' ? 'default' : 'ghost'} 
-                    className="hover:bg-primary/10"
+                    className="hover:bg-accent"
                     size="sm"
                   >
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +124,7 @@ export default function Header() {
                   <Link href="/admin" className="flex-shrink-0">
                     <Button 
                       variant={router.pathname.startsWith('/admin') ? 'default' : 'outline'} 
-                      className="border-primary/50 hover:bg-primary/10"
+                      className="border-border hover:bg-accent"
                       size="sm"
                     >
                       <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -147,7 +147,7 @@ export default function Header() {
                   </Button>
                 </Link>
                 <Link href="/register" className="flex-shrink-0">
-                  <Button className="gradient-primary shadow-glow" size="sm">
+                  <Button size="sm">
                     <svg className="w-4 h-4 sm:mr-1 md:mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                     </svg>
@@ -162,7 +162,7 @@ export default function Header() {
               variant="ghost"
               size="sm"
               onClick={toggleTheme}
-              className="ml-2 hover:bg-primary/10"
+              className="ml-2 hover:bg-accent"
               aria-label="Переключить тему"
             >
               {isDark ? (

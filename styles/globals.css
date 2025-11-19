@@ -1,6 +1,9 @@
 @import './vars.css';
 
-/* Глобальные стили */
+/* ==========================================
+   ГЛОБАЛЬНЫЕ СТИЛИ - ПРОФЕССИОНАЛЬНАЯ ПЛАТФОРМА
+   ========================================== */
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -15,7 +18,7 @@ body {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -23,9 +26,11 @@ body {
   background: hsl(var(--background));
   min-height: 100vh;
   position: relative;
+  line-height: 1.6;
+  letter-spacing: -0.01em;
 }
 
-/* Добавим тонкий паттерн */
+/* Профессиональный фон с тонким паттерном */
 body::before {
   content: '';
   position: fixed;
@@ -33,10 +38,11 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: radial-gradient(circle at 1px 1px, hsl(var(--foreground) / 0.03) 1px, transparent 0);
-  background-size: 40px 40px;
+  background-image: 
+    radial-gradient(circle at 20% 50%, hsl(var(--primary) / 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, hsl(var(--primary) / 0.02) 0%, transparent 50%);
   pointer-events: none;
-  z-index: 0;
+  z-index: -1;
 }
 
 a {
@@ -76,24 +82,24 @@ a.link-underline:hover::after {
   display: none;
 }
 
-/* Кастомный скроллбар */
+/* Минималистичный скроллбар */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: hsl(var(--muted) / 0.3);
+  background: hsl(var(--muted) / 0.2);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, hsl(var(--primary)), hsl(var(--gradient-to)));
-  border-radius: 5px;
-  transition: background 0.3s ease;
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 4px;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, hsl(var(--gradient-to)), hsl(var(--primary)));
+  background: hsl(var(--muted-foreground) / 0.5);
 }
 
 /* Современные анимации */
@@ -151,36 +157,76 @@ a.link-underline:hover::after {
   animation: scaleIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Улучшенные карточки */
+/* ==========================================
+   ПРОФЕССИОНАЛЬНЫЕ КАРТОЧКИ
+   ========================================== */
+
 .card-modern {
-  background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--card) / 0.95) 100%);
-  border: 1px solid hsl(var(--border) / 0.5);
-  border-radius: calc(var(--radius) * 1.5);
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.6);
+  border-radius: 16px;
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 .card-modern::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.05), transparent);
-  transition: left 0.5s ease;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.6));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-modern:hover {
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  transform: translateY(-4px);
-  border-color: hsl(var(--primary) / 0.4);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 5px 10px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+  border-color: hsl(var(--primary) / 0.3);
 }
 
 .card-modern:hover::before {
-  left: 100%;
+  transform: scaleX(1);
+}
+
+/* Карточка с эффектом hover */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 10px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Карточка контента с градиентной рамкой */
+.card-gradient-border {
+  position: relative;
+  background: hsl(var(--card));
+  border-radius: 16px;
+  padding: 2px;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.2), hsl(var(--primary) / 0.05));
+}
+
+.card-gradient-border-content {
+  background: hsl(var(--card));
+  border-radius: 14px;
+  padding: 1.5rem;
+  position: relative;
+  z-index: 1;
 }
 
 /* Карточка с неоновым эффектом */
@@ -197,18 +243,25 @@ a.link-underline:hover::after {
   border-color: hsl(var(--primary) / 0.6);
 }
 
-/* Градиентные кнопки */
+/* ==========================================
+   ПРОФЕССИОНАЛЬНЫЕ КНОПКИ
+   ========================================== */
+
 .btn-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--gradient-to)) 100%);
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.9));
   color: hsl(var(--primary-foreground));
   border: none;
-  border-radius: var(--radius);
-  padding: 0.75rem 2rem;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
   font-weight: 600;
-  box-shadow: 0 10px 25px -5px hsl(var(--primary) / 0.4);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.95rem;
+  box-shadow: 
+    0 4px 15px hsl(var(--primary) / 0.25),
+    0 2px 5px hsl(var(--primary) / 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
+  letter-spacing: -0.01em;
 }
 
 .btn-gradient::before {
@@ -218,13 +271,15 @@ a.link-underline:hover::after {
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   transition: left 0.5s ease;
 }
 
 .btn-gradient:hover {
-  box-shadow: 0 15px 35px -5px hsl(var(--primary) / 0.5);
-  transform: translateY(-3px);
+  box-shadow: 
+    0 8px 25px hsl(var(--primary) / 0.35),
+    0 4px 10px hsl(var(--primary) / 0.2);
+  transform: translateY(-2px);
 }
 
 .btn-gradient:hover::before {
@@ -232,8 +287,33 @@ a.link-underline:hover::after {
 }
 
 .btn-gradient:active {
+  transform: translateY(0);
+  box-shadow: 
+    0 2px 10px hsl(var(--primary) / 0.3),
+    0 1px 3px hsl(var(--primary) / 0.2);
+}
+
+/* Профессиональная кнопка с subtle эффектом */
+.btn-professional {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  border: 1px solid hsl(var(--primary));
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.01em;
+}
+
+.btn-professional:hover {
+  background: hsl(var(--primary) / 0.9);
+  box-shadow: 0 4px 12px hsl(var(--primary) / 0.25);
   transform: translateY(-1px);
-  box-shadow: 0 8px 20px -5px hsl(var(--primary) / 0.4);
+}
+
+.btn-professional:active {
+  transform: translateY(0);
 }
 
 /* Вторичная кнопка с обводкой */
@@ -339,7 +419,10 @@ a.link-underline:hover::after {
   animation: shimmer 2s infinite linear;
 }
 
-/* Word wrap и обрезка длинных текстов */
+/* ==========================================
+   УТИЛИТЫ ДЛЯ ТЕКСТА
+   ========================================== */
+
 .text-wrap {
   word-wrap: break-word;
   word-break: break-word;
@@ -362,8 +445,150 @@ a.link-underline:hover::after {
   overflow-x: hidden;
 }
 
-/* Для длинных строк без пробелов */
 .text-break-all {
   word-break: break-all;
   overflow-wrap: anywhere;
+}
+
+/* ==========================================
+   ПРОФЕССИОНАЛЬНЫЕ УТИЛИТЫ
+   ========================================== */
+
+/* Красивые секции */
+.section-professional {
+  padding: 4rem 0;
+  position: relative;
+}
+
+.section-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.7));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: hsl(var(--muted-foreground));
+  line-height: 1.7;
+  max-width: 48rem;
+}
+
+/* Красивые бейджы */
+.badge-professional {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.875rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: 1px solid hsl(var(--primary) / 0.2);
+  transition: all 0.2s ease;
+}
+
+.badge-professional:hover {
+  background: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary) / 0.3);
+}
+
+.badge-success {
+  background: hsl(142 76% 36% / 0.1);
+  color: hsl(142 76% 36%);
+  border-color: hsl(142 76% 36% / 0.2);
+}
+
+.badge-warning {
+  background: hsl(38 92% 50% / 0.1);
+  color: hsl(38 92% 50%);
+  border-color: hsl(38 92% 50% / 0.2);
+}
+
+.badge-error {
+  background: hsl(var(--destructive) / 0.1);
+  color: hsl(var(--destructive));
+  border-color: hsl(var(--destructive) / 0.2);
+}
+
+/* Улучшенные инпуты */
+.input-professional {
+  border: 1.5px solid hsl(var(--border));
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  background: hsl(var(--background));
+}
+
+.input-professional:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* Профессиональный прогресс бар */
+.progress-professional {
+  height: 8px;
+  background: hsl(var(--muted) / 0.3);
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-professional-bar {
+  height: 100%;
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary) / 0.8));
+  border-radius: 9999px;
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-professional-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+/* Красивые тени */
+.shadow-professional {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-professional-lg {
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 5px 10px rgba(0, 0, 0, 0.05);
+}
+
+/* Эффект skeleton loading */
+.skeleton {
+  background: linear-gradient(90deg, 
+    hsl(var(--muted) / 0.3) 25%, 
+    hsl(var(--muted) / 0.5) 50%, 
+    hsl(var(--muted) / 0.3) 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 8px;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
