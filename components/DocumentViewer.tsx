@@ -12,7 +12,10 @@ interface DocumentViewerProps {
  * Поддерживает: PDF, Word (.doc, .docx), PowerPoint (.ppt, .pptx), TXT
  */
 export default function DocumentViewer({ url, filename, className = '' }: DocumentViewerProps) {
+  // Все хуки должны быть на верхнем уровне
   const [viewMode, setViewMode] = useState<'embed' | 'download'>('embed')
+  const [content, setContent] = useState<string>('')
+  const [txtLoading, setTxtLoading] = useState(true)
   
   // Определяем тип документа по расширению
   const getFileExtension = (url: string): string => {
@@ -22,6 +25,22 @@ export default function DocumentViewer({ url, filename, className = '' }: Docume
 
   const extension = getFileExtension(url)
   const fileName = filename || url.split('/').pop() || 'документ'
+
+  // Загрузка TXT файлов
+  useEffect(() => {
+    if (extension === 'txt') {
+      fetch(url)
+        .then(res => res.text())
+        .then(text => {
+          setContent(text)
+          setTxtLoading(false)
+        })
+        .catch(err => {
+          setContent('Ошибка загрузки файла')
+          setTxtLoading(false)
+        })
+    }
+  }, [url, extension])
 
   // PDF - встраиваем напрямую
   if (extension === 'pdf') {
@@ -62,25 +81,7 @@ export default function DocumentViewer({ url, filename, className = '' }: Docume
     )
   }
 
-  // TXT - загружаем и отображаем содержимое
-  const [content, setContent] = useState<string>('')
-  const [txtLoading, setTxtLoading] = useState(true)
-  
-  useEffect(() => {
-    if (extension === 'txt') {
-      fetch(url)
-        .then(res => res.text())
-        .then(text => {
-          setContent(text)
-          setTxtLoading(false)
-        })
-        .catch(err => {
-          setContent('Ошибка загрузки файла')
-          setTxtLoading(false)
-        })
-    }
-  }, [url, extension])
-  
+  // TXT - отображаем содержимое
   if (extension === 'txt') {
     return (
       <div className={`card-modern overflow-hidden ${className}`}>
@@ -186,7 +187,7 @@ export default function DocumentViewer({ url, filename, className = '' }: Docume
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <h3 className="text-lg font-semibold mb-2">Документ готов к загрузке</h3>
-            <p className="text-sm text-muted-foreground mb-4">Нажмите кнопку "Скачать" для загрузки файла</p>
+            <p className="text-sm text-muted-foreground mb-4">Нажмите кнопку &quot;Скачать&quot; для загрузки файла</p>
           </div>
         )}
       </div>

@@ -157,7 +157,7 @@ export default function AdminVideosPage() {
       lesson_id: video.lesson_id?.toString() || '',
       title: video.title,
       url: video.url,
-      type: video.type,
+      type: video.type as 'youtube' | 'vimeo' | 'rutube' | 'direct',
     })
     setIsDialogOpen(true)
   }
