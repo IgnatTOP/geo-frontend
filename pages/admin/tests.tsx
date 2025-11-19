@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
-import { getTests, createTest, updateTest, deleteTest, getAllTestAttempts, createTestGrade, updateTestGrade, deleteTestGrade } from '@/services/tests'
+import { getTests, createTest, updateTest, deleteTest, getAllTestAttempts, createTestGrade, updateTestGrade, deleteTestGrade, deleteTestAttempt } from '@/services/tests'
 import { getLessons } from '@/services/lessons'
 import type { Test, TestAttempt, TestGrade } from '@/services/tests'
 import type { Lesson } from '@/services/lessons'
@@ -23,7 +23,8 @@ export default function AdminTestsPage() {
   const [attempts, setAttempts] = useState<TestAttempt[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'tests' | 'attempts' | 'grades'>('tests')
+  const [activeTab, setActiveTab] = useState<'tests' | 'attempts'>('tests')
+  const [selectedLesson, setSelectedLesson] = useState<number | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false)
   const [editingTest, setEditingTest] = useState<Test | null>(null)
@@ -37,6 +38,33 @@ export default function AdminTestsPage() {
     questions: [] as Array<{ question: string; options: string[]; correct_answer: number; order: number }>
   })
   const [gradeData, setGradeData] = useState({ user_id: '', test_id: '', attempt_id: '', grade: '', comment: '' })
+
+  // Группировка тестов по урокам
+  const testsByLesson = useMemo(() => {
+    const grouped: Record<number, Test[]> = {}
+    tests.forEach((test) => {
+      if (!grouped[test.lesson_id]) {
+        grouped[test.lesson_id] = []
+      }
+      grouped[test.lesson_id].push(test)
+    })
+    return grouped
+  }, [tests])
+
+  // Группировка попыток по урокам
+  const attemptsByLesson = useMemo(() => {
+    const grouped: Record<number, TestAttempt[]> = {}
+    attempts.forEach((attempt: any) => {
+      const lessonId = attempt.test?.lesson_id
+      if (lessonId) {
+        if (!grouped[lessonId]) {
+          grouped[lessonId] = []
+        }
+        grouped[lessonId].push(attempt)
+      }
+    })
+    return grouped
+  }, [attempts])
 
   useEffect(() => {
     if (!isAuth || user?.role !== 'admin') return
@@ -143,13 +171,13 @@ export default function AdminTestsPage() {
         allow_retake: formData.allow_retake,
         questions: formData.questions,
       } as any)
-      success('Тест успешно создан')
+      success(`Тест "${formData.title}" успешно создан`)
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
       loadData()
     } catch (error) {
       console.error('Ошибка создания теста:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось создать тест')
     }
   }
 
@@ -166,22 +194,31 @@ export default function AdminTestsPage() {
   }
 
   const handleCreateGrade = async () => {
+    if (!gradeData.grade || parseFloat(gradeData.grade) < 0) {
+      showError('Введите корректную оценку')
+      return
+    }
+    
     try {
+      const gradeValue = parseFloat(gradeData.grade)
       await createTestGrade({
         user_id: parseInt(gradeData.user_id),
         test_id: parseInt(gradeData.test_id),
         attempt_id: gradeData.attempt_id ? parseInt(gradeData.attempt_id) : undefined,
-        grade: parseFloat(gradeData.grade),
+        grade: gradeValue,
         comment: gradeData.comment || undefined,
       })
-      success('Оценка успешно выставлена')
+      
+      const studentName = (selectedAttempt as any)?.user?.name || 'студенту'
+      success(`Оценка ${gradeValue.toFixed(1)} успешно выставлена ${studentName}`)
+      
       setIsGradeDialogOpen(false)
       setGradeData({ user_id: '', test_id: '', attempt_id: '', grade: '', comment: '' })
       setSelectedAttempt(null)
       loadData()
     } catch (error) {
       console.error('Ошибка создания оценки:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось выставить оценку')
     }
   }
 
@@ -195,6 +232,21 @@ export default function AdminTestsPage() {
       comment: '',
     })
     setIsGradeDialogOpen(true)
+  }
+
+  const handleAllowRetake = async (attemptId: number, studentName: string) => {
+    if (!confirm(`Разрешить пересдачу для ${studentName}?\n\nЭто удалит запись о прохождении теста и все оценки, связанные с этой попыткой.`)) {
+      return
+    }
+    
+    try {
+      await deleteTestAttempt(attemptId)
+      success(`Пересдача разрешена для ${studentName}. Попытка и оценки удалены.`)
+      loadData()
+    } catch (error) {
+      console.error('Ошибка удаления попытки:', error)
+      showError('Не удалось разрешить пересдачу')
+    }
   }
 
   if (!isAuth || user?.role !== 'admin') {
@@ -229,32 +281,46 @@ export default function AdminTestsPage() {
         </div>
 
         {/* Вкладки */}
-        <div className="flex gap-4 mb-6 border-b">
+        <div className="flex gap-4 mb-6 border-b pb-0">
           <button
-            className={`pb-2 px-4 ${activeTab === 'tests' ? 'border-b-2 border-primary' : ''}`}
+            className={`pb-3 px-6 font-semibold transition-all ${
+              activeTab === 'tests' 
+                ? 'border-b-2 border-primary text-primary' 
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setActiveTab('tests')}
           >
             Тесты
           </button>
           <button
-            className={`pb-2 px-4 ${activeTab === 'attempts' ? 'border-b-2 border-primary' : ''}`}
+            className={`pb-3 px-6 font-semibold transition-all ${
+              activeTab === 'attempts' 
+                ? 'border-b-2 border-primary text-primary' 
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setActiveTab('attempts')}
           >
-            Попытки
+            Попытки студентов
           </button>
         </div>
 
         {/* Список тестов */}
         {activeTab === 'tests' && (
           <>
-            <div className="mb-6">
+            <div className="mb-6 flex justify-between items-center">
+              <p className="text-muted-foreground">
+                Всего тестов: <span className="font-semibold text-foreground">{tests.length}</span>
+              </p>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
-                <Button onClick={() => {
-                  setEditingTest(null)
-                  setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
-                }}>
-                  Создать тест
+                <Button 
+                  onClick={() => {
+                    setEditingTest(null)
+                    setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
+                  }}
+                  className="shadow-md"
+                >
+                  + Создать тест
                 </Button>
               </DialogTrigger>
                 <DialogContent className="max-w-[95vw] sm:max-w-4xl max-h-[90vh] overflow-y-auto w-full">
@@ -426,62 +492,242 @@ export default function AdminTestsPage() {
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {tests.map((test) => (
-                <Card key={test.id}>
-                  <CardHeader>
-                    <CardTitle>{test.title}</CardTitle>
-                    <CardDescription>
-                      {test.description || 'Нет описания'}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDeleteTest(test.id)}
-                      className="w-full"
-                    >
-                      Удалить
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {tests.length === 0 && (
+            {/* Группировка тестов по урокам */}
+            {lessons.length === 0 ? (
               <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">Тесты пока не добавлены</p>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Сначала создайте уроки</p>
+                  <Link href="/admin/lessons">
+                    <Button className="mt-4" variant="outline">Перейти к урокам</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {lessons.map((lesson) => {
+                  const lessonTests = testsByLesson[lesson.id] || []
+                  const isExpanded = selectedLesson === lesson.id
+                  
+                  return (
+                    <Card key={lesson.id} className="overflow-hidden">
+                      <div
+                        className="p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setSelectedLesson(isExpanded ? null : lesson.id)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-1">
+                              Урок {lesson.number}: {lesson.topic}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Тестов: {lessonTests.length}
+                            </p>
+                          </div>
+                          <div className="text-2xl text-muted-foreground">
+                            {isExpanded ? '−' : '+'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isExpanded && (
+                        <div className="border-t bg-muted/20 p-6">
+                          {lessonTests.length === 0 ? (
+                            <p className="text-center text-muted-foreground py-4">
+                              Тестов для этого урока пока нет
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {lessonTests.map((test) => (
+                                <Card key={test.id} className="flex flex-col h-full">
+                                  <CardHeader className="flex-1">
+                                    <CardTitle className="text-lg line-clamp-2">
+                                      {test.title}
+                                    </CardTitle>
+                                    <CardDescription className="line-clamp-3 min-h-[60px]">
+                                      {test.description || 'Нет описания'}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="space-y-2">
+                                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                          test.type === 'single' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+                                        }`}>
+                                          {test.type === 'single' ? 'Один ответ' : 'Несколько ответов'}
+                                        </span>
+                                        {test.allow_retake && (
+                                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                                            Пересдача
+                                          </span>
+                                        )}
+                                      </div>
+                                      <Button
+                                        variant="destructive"
+                                        onClick={() => handleDeleteTest(test.id)}
+                                        className="w-full"
+                                        size="sm"
+                                      >
+                                        Удалить
+                                      </Button>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+            
+            {tests.length === 0 && lessons.length > 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground mb-4">Тесты пока не добавлены</p>
+                  <Button onClick={() => setIsDialogOpen(true)}>Создать первый тест</Button>
                 </CardContent>
               </Card>
             )}
           </>
         )}
 
-        {/* Список попыток */}
+        {/* Список попыток по урокам */}
         {activeTab === 'attempts' && (
           <div className="space-y-4">
-            {attempts.map((attempt: any) => (
-              <Card key={attempt.id}>
-                <CardHeader>
-                  <CardTitle>
-                    Тест: {attempt.test?.title || 'Неизвестный тест'}
-                  </CardTitle>
-                  <CardDescription>
-                    Пользователь: {attempt.user?.name || 'ID: ' + attempt.user_id} ({attempt.user?.email || ''}) | 
-                    Балл: {attempt.score.toFixed(1)}% | 
-                    Дата: {new Date(attempt.created_at).toLocaleDateString('ru-RU')}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <Button onClick={() => openGradeDialog(attempt)}>
-                    Выставить оценку
-                  </Button>
+            <div className="mb-6">
+              <p className="text-muted-foreground">
+                Всего попыток: <span className="font-semibold text-foreground">{attempts.length}</span>
+              </p>
+            </div>
+
+            {lessons.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Уроки не найдены</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="space-y-4">
+                {lessons.map((lesson) => {
+                  const lessonAttempts = attemptsByLesson[lesson.id] || []
+                  const isExpanded = selectedLesson === lesson.id
+                  
+                  if (lessonAttempts.length === 0) return null
+                  
+                  return (
+                    <Card key={lesson.id} className="overflow-hidden">
+                      <div
+                        className="p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setSelectedLesson(isExpanded ? null : lesson.id)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-1">
+                              Урок {lesson.number}: {lesson.topic}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Попыток: {lessonAttempts.length}
+                            </p>
+                          </div>
+                          <div className="text-2xl text-muted-foreground">
+                            {isExpanded ? '−' : '+'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isExpanded && (
+                        <div className="border-t bg-muted/20 p-6">
+                          <div className="space-y-3">
+                            {lessonAttempts.map((attempt: any) => (
+                              <Card key={attempt.id} className="bg-background">
+                                <CardHeader className="pb-3">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <CardTitle className="text-base mb-2">
+                                        {attempt.test?.title || 'Неизвестный тест'}
+                                      </CardTitle>
+                                      <CardDescription className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">Студент:</span>
+                                          <span>{attempt.user?.name || 'ID: ' + attempt.user_id}</span>
+                                          {attempt.user?.email && (
+                                            <span className="text-xs">({attempt.user.email})</span>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm flex-wrap">
+                                          <span className="flex items-center gap-1">
+                                            <span className="font-medium">Балл:</span>
+                                            <span className={`font-semibold ${
+                                              attempt.score >= 80 ? 'text-green-600' : 
+                                              attempt.score >= 60 ? 'text-yellow-600' : 
+                                              'text-red-600'
+                                            }`}>
+                                              {attempt.score.toFixed(1)}%
+                                            </span>
+                                          </span>
+                                          {attempt.grade && (
+                                            <span className="flex items-center gap-1">
+                                              <span className="font-medium">Оценка:</span>
+                                              <span className="font-semibold text-primary px-2 py-0.5 rounded-full bg-primary/10">
+                                                {attempt.grade.grade}
+                                              </span>
+                                            </span>
+                                          )}
+                                          <span className="flex items-center gap-1">
+                                            <span className="font-medium">Дата:</span>
+                                            <span>{new Date(attempt.created_at).toLocaleDateString('ru-RU', {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}</span>
+                                          </span>
+                                        </div>
+                                        {attempt.grade?.comment && (
+                                          <div className="mt-2 p-2 bg-muted/50 rounded text-xs">
+                                            <span className="font-medium">Комментарий:</span> {attempt.grade.comment}
+                                          </div>
+                                        )}
+                                      </CardDescription>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                  <div className="flex gap-2 flex-wrap">
+                                    <Button 
+                                      onClick={() => openGradeDialog(attempt)}
+                                      size="sm"
+                                      variant={attempt.grade ? "outline" : "default"}
+                                    >
+                                      {attempt.grade ? 'Изменить оценку' : 'Выставить оценку'}
+                                    </Button>
+                                    <Button 
+                                      onClick={() => handleAllowRetake(attempt.id, attempt.user?.name || 'студента')}
+                                      size="sm"
+                                      variant="destructive"
+                                    >
+                                      Разрешить пересдачу
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+
             {attempts.length === 0 && (
               <Card>
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-8 text-center">
                   <p className="text-muted-foreground">Попыток пока нет</p>
                 </CardContent>
               </Card>
@@ -491,39 +737,86 @@ export default function AdminTestsPage() {
 
         {/* Диалог выставления оценки */}
         <Dialog open={isGradeDialogOpen} onOpenChange={setIsGradeDialogOpen}>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Выставить оценку</DialogTitle>
+              <DialogTitle className="text-xl">Выставить оценку</DialogTitle>
               <DialogDescription>
                 Оцените попытку прохождения теста
               </DialogDescription>
             </DialogHeader>
+            
+            {selectedAttempt && (
+              <div className="bg-muted/50 rounded-lg p-4 space-y-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Студент:</span>
+                    <p className="font-medium">{(selectedAttempt as any).user?.name || 'ID: ' + selectedAttempt.user_id}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Тест:</span>
+                    <p className="font-medium">{(selectedAttempt as any).test?.title || 'Неизвестный тест'}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Результат:</span>
+                    <p className={`font-semibold ${
+                      selectedAttempt.score >= 80 ? 'text-green-600' : 
+                      selectedAttempt.score >= 60 ? 'text-yellow-600' : 
+                      'text-red-600'
+                    }`}>
+                      {selectedAttempt.score.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Дата:</span>
+                    <p className="font-medium text-sm">
+                      {new Date(selectedAttempt.created_at).toLocaleDateString('ru-RU')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
             <div className="space-y-4">
               <div>
-                <Label htmlFor="grade">Оценка</Label>
+                <Label htmlFor="grade" className="text-base font-semibold">
+                  Оценка (балл) *
+                </Label>
                 <Input
                   id="grade"
                   type="number"
                   step="0.1"
+                  min="0"
+                  max="100"
                   value={gradeData.grade}
                   onChange={(e) => setGradeData({ ...gradeData, grade: e.target.value })}
+                  placeholder="Введите оценку (например, 5 или 85)"
+                  className="mt-2"
+                  autoFocus
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Укажите оценку по вашей шкале оценивания
+                </p>
               </div>
               <div>
-                <Label htmlFor="comment">Комментарий</Label>
+                <Label htmlFor="comment" className="text-base font-semibold">
+                  Комментарий (необязательно)
+                </Label>
                 <textarea
                   id="comment"
-                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  className="flex min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm mt-2 resize-none"
                   value={gradeData.comment}
                   onChange={(e) => setGradeData({ ...gradeData, comment: e.target.value })}
+                  placeholder="Добавьте комментарий для студента..."
                 />
               </div>
             </div>
-            <DialogFooter>
+            <DialogFooter className="gap-2 sm:gap-0">
               <Button variant="outline" onClick={() => setIsGradeDialogOpen(false)}>
                 Отмена
               </Button>
-              <Button onClick={handleCreateGrade}>Выставить</Button>
+              <Button onClick={handleCreateGrade} className="shadow-md">
+                Выставить оценку
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

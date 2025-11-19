@@ -106,13 +106,13 @@ export default function AdminLessonsPage() {
         documents: formData.documents.length > 0 ? JSON.stringify(formData.documents) : undefined,
         video_files: formData.video_files.length > 0 ? JSON.stringify(formData.video_files) : undefined,
       })
-      success('Урок успешно создан')
+      success(`Урок ${number} "${formData.topic}" успешно создан`)
       setIsDialogOpen(false)
       setFormData({ number: '', topic: '', content: '', images: [], documents: [], video_files: [] })
       loadLessons()
     } catch (error) {
       console.error('Ошибка создания урока:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось создать урок')
     }
   }
 
@@ -127,7 +127,7 @@ export default function AdminLessonsPage() {
         documents: formData.documents.length > 0 ? JSON.stringify(formData.documents) : (editingLesson.documents || undefined),
         video_files: formData.video_files.length > 0 ? JSON.stringify(formData.video_files) : (editingLesson.video_files || undefined),
       })
-      success('Урок успешно обновлен')
+      success(`Урок "${formData.topic || editingLesson.topic}" успешно обновлен`)
       setIsDialogOpen(false)
       setEditingLesson(null)
       setFormData({ number: '', topic: '', content: '', images: [], documents: [], video_files: [] })

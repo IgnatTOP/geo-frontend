@@ -159,3 +159,10 @@ export const deleteTestGrade = async (id: number): Promise<void> => {
   await api.delete(`/admin/tests/grades/${id}`)
 }
 
+/**
+ * Удалить попытку теста (разрешить пересдачу) (только для админа)
+ */
+export const deleteTestAttempt = async (id: number): Promise<void> => {
+  await api.delete(`/admin/tests/attempts/${id}`)
+}
+

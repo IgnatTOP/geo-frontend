@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/ToastContext'
@@ -26,11 +26,39 @@ export default function AdminPracticesPage() {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'practices' | 'submits'>('practices')
+  const [selectedLesson, setSelectedLesson] = useState<number | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false)
   const [selectedSubmit, setSelectedSubmit] = useState<PracticeSubmit | null>(null)
   const [formData, setFormData] = useState({ lesson_id: '', title: '', file_url: '' })
   const [gradeData, setGradeData] = useState({ user_id: '', practice_id: '', submit_id: '', grade: '', comment: '' })
+
+  // Группировка практик по урокам
+  const practicesByLesson = useMemo(() => {
+    const grouped: Record<number, Practice[]> = {}
+    practices.forEach((practice) => {
+      if (!grouped[practice.lesson_id]) {
+        grouped[practice.lesson_id] = []
+      }
+      grouped[practice.lesson_id].push(practice)
+    })
+    return grouped
+  }, [practices])
+
+  // Группировка отправок по урокам
+  const submitsByLesson = useMemo(() => {
+    const grouped: Record<number, PracticeSubmit[]> = {}
+    submits.forEach((submit: any) => {
+      const lessonId = submit.practice?.lesson_id
+      if (lessonId) {
+        if (!grouped[lessonId]) {
+          grouped[lessonId] = []
+        }
+        grouped[lessonId].push(submit)
+      }
+    })
+    return grouped
+  }, [submits])
 
   useEffect(() => {
     if (!isAuth || user?.role !== 'admin') return
@@ -75,13 +103,13 @@ export default function AdminPracticesPage() {
         title: formData.title,
         file_url: formData.file_url,
       })
-      success('Практическое задание успешно создано')
+      success(`Практическое задание "${formData.title}" успешно создано`)
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', file_url: '' })
       loadData()
     } catch (error) {
       console.error('Ошибка создания практики:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось создать практическое задание')
     }
   }
 
@@ -161,18 +189,26 @@ export default function AdminPracticesPage() {
         </div>
 
         {/* Вкладки */}
-        <div className="flex gap-4 mb-6 border-b">
+        <div className="flex gap-4 mb-6 border-b pb-0">
           <button
-            className={`pb-2 px-4 ${activeTab === 'practices' ? 'border-b-2 border-primary' : ''}`}
+            className={`pb-3 px-6 font-semibold transition-all ${
+              activeTab === 'practices' 
+                ? 'border-b-2 border-primary text-primary' 
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setActiveTab('practices')}
           >
             Практики
           </button>
           <button
-            className={`pb-2 px-4 ${activeTab === 'submits' ? 'border-b-2 border-primary' : ''}`}
+            className={`pb-3 px-6 font-semibold transition-all ${
+              activeTab === 'submits' 
+                ? 'border-b-2 border-primary text-primary' 
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
             onClick={() => setActiveTab('submits')}
           >
-            Отправки
+            Отправки студентов
           </button>
         </div>
 
@@ -248,83 +284,222 @@ export default function AdminPracticesPage() {
               </Dialog>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {practices.map((practice: any) => (
-                <Card key={practice.id}>
-                  <CardHeader>
-                    <CardTitle>{practice.title}</CardTitle>
-                    <CardDescription>
-                      {practice.lesson ? `Урок ${practice.lesson.number}: ${practice.lesson.topic}` : `Урок ID: ${practice.lesson_id}`}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {practice.file_url && (() => {
-                      const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
-                      return (
-                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
-                          <Button variant="outline" className="w-full">Файл задания</Button>
-                        </a>
-                      )
-                    })()}
-                    <Button
-                      variant="destructive"
-                      onClick={() => handleDelete(practice.id)}
-                      className="w-full"
-                    >
-                      Удалить
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {practices.length === 0 && (
+            {/* Группировка практик по урокам */}
+            {lessons.length === 0 ? (
               <Card>
-                <CardContent className="p-6 text-center">
-                  <p className="text-muted-foreground">Практики пока не добавлены</p>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Сначала создайте уроки</p>
+                  <Link href="/admin/lessons">
+                    <Button className="mt-4" variant="outline">Перейти к урокам</Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {lessons.map((lesson) => {
+                  const lessonPractices = practicesByLesson[lesson.id] || []
+                  const isExpanded = selectedLesson === lesson.id
+                  
+                  return (
+                    <Card key={lesson.id} className="overflow-hidden">
+                      <div
+                        className="p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setSelectedLesson(isExpanded ? null : lesson.id)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-1">
+                              Урок {lesson.number}: {lesson.topic}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Практик: {lessonPractices.length}
+                            </p>
+                          </div>
+                          <div className="text-2xl text-muted-foreground">
+                            {isExpanded ? '−' : '+'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isExpanded && (
+                        <div className="border-t bg-muted/20 p-6">
+                          {lessonPractices.length === 0 ? (
+                            <p className="text-center text-muted-foreground py-4">
+                              Практик для этого урока пока нет
+                            </p>
+                          ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {lessonPractices.map((practice: any) => (
+                                <Card key={practice.id} className="flex flex-col h-full">
+                                  <CardHeader className="flex-1">
+                                    <CardTitle className="text-lg line-clamp-2">
+                                      {practice.title || 'Практическое задание'}
+                                    </CardTitle>
+                                  </CardHeader>
+                                  <CardContent>
+                                    <div className="space-y-2">
+                                      {practice.file_url && (() => {
+                                        const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+                                        return (
+                                          <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
+                                            <Button variant="outline" className="w-full" size="sm">
+                                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                              </svg>
+                                              Файл задания
+                                            </Button>
+                                          </a>
+                                        )
+                                      })()}
+                                      <Button
+                                        variant="destructive"
+                                        onClick={() => handleDelete(practice.id)}
+                                        className="w-full"
+                                        size="sm"
+                                      >
+                                        Удалить
+                                      </Button>
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+            
+            {practices.length === 0 && lessons.length > 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground mb-4">Практики пока не добавлены</p>
+                  <Button onClick={() => setIsDialogOpen(true)}>Создать первую практику</Button>
                 </CardContent>
               </Card>
             )}
           </>
         )}
 
-        {/* Список отправок */}
+        {/* Список отправок по урокам */}
         {activeTab === 'submits' && (
           <div className="space-y-4">
-            {submits.map((submit: any) => (
-              <Card key={submit.id}>
-                <CardHeader>
-                  <CardTitle>
-                    {submit.practice?.title || 'Практика'}
-                  </CardTitle>
-                  <CardDescription>
-                    Пользователь: {submit.user?.name || 'ID: ' + submit.user_id} ({submit.user?.email || ''}) | 
-                    Дата: {new Date(submit.created_at).toLocaleDateString('ru-RU', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="flex gap-2">
-                  {(() => {
-                    const normalizedUrl = normalizeFileUrl(submit.file_url) || submit.file_url
-                    return (
-                  <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
-                    <Button variant="outline">Открыть файл</Button>
-                  </a>
-                    )
-                  })()}
-                  <Button onClick={() => openGradeDialog(submit)}>
-                    Выставить оценку
-                  </Button>
+            <div className="mb-6">
+              <p className="text-muted-foreground">
+                Всего отправок: <span className="font-semibold text-foreground">{submits.length}</span>
+              </p>
+            </div>
+
+            {lessons.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Уроки не найдены</p>
                 </CardContent>
               </Card>
-            ))}
+            ) : (
+              <div className="space-y-4">
+                {lessons.map((lesson) => {
+                  const lessonSubmits = submitsByLesson[lesson.id] || []
+                  const isExpanded = selectedLesson === lesson.id
+                  
+                  if (lessonSubmits.length === 0) return null
+                  
+                  return (
+                    <Card key={lesson.id} className="overflow-hidden">
+                      <div
+                        className="p-6 cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => setSelectedLesson(isExpanded ? null : lesson.id)}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div className="flex-1">
+                            <h3 className="text-xl font-semibold mb-1">
+                              Урок {lesson.number}: {lesson.topic}
+                            </h3>
+                            <p className="text-sm text-muted-foreground">
+                              Отправок: {lessonSubmits.length}
+                            </p>
+                          </div>
+                          <div className="text-2xl text-muted-foreground">
+                            {isExpanded ? '−' : '+'}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {isExpanded && (
+                        <div className="border-t bg-muted/20 p-6">
+                          <div className="space-y-3">
+                            {lessonSubmits.map((submit: any) => (
+                              <Card key={submit.id} className="bg-background">
+                                <CardHeader className="pb-3">
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <CardTitle className="text-base mb-2">
+                                        {submit.practice?.title || 'Практическое задание'}
+                                      </CardTitle>
+                                      <CardDescription className="space-y-1">
+                                        <div className="flex items-center gap-2">
+                                          <span className="font-medium">Студент:</span>
+                                          <span>{submit.user?.name || 'ID: ' + submit.user_id}</span>
+                                          {submit.user?.email && (
+                                            <span className="text-xs">({submit.user.email})</span>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-4 text-sm">
+                                          <span className="flex items-center gap-1">
+                                            <span className="font-medium">Дата:</span>
+                                            <span>{new Date(submit.created_at).toLocaleDateString('ru-RU', {
+                                              day: '2-digit',
+                                              month: '2-digit',
+                                              year: 'numeric',
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}</span>
+                                          </span>
+                                        </div>
+                                      </CardDescription>
+                                    </div>
+                                  </div>
+                                </CardHeader>
+                                <CardContent className="pt-0">
+                                  <div className="flex gap-2 flex-wrap">
+                                    {(() => {
+                                      const normalizedUrl = normalizeFileUrl(submit.file_url) || submit.file_url
+                                      return (
+                                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
+                                          <Button variant="outline" size="sm">
+                                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            Открыть файл
+                                          </Button>
+                                        </a>
+                                      )
+                                    })()}
+                                    <Button 
+                                      onClick={() => openGradeDialog(submit)}
+                                      size="sm"
+                                    >
+                                      Выставить оценку
+                                    </Button>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+
             {submits.length === 0 && (
               <Card>
-                <CardContent className="p-6 text-center">
+                <CardContent className="p-8 text-center">
                   <p className="text-muted-foreground">Отправок пока нет</p>
                 </CardContent>
               </Card>

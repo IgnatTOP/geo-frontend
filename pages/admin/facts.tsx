@@ -71,13 +71,13 @@ export default function AdminFactsPage() {
         content: formData.content,
         image_url: formData.image_url || undefined,
       })
-      success('Факт успешно создан')
+      success(`Факт "${formData.title}" успешно создан`)
       setIsDialogOpen(false)
       setFormData({ title: '', content: '', image_url: '' })
       loadFacts()
     } catch (error) {
       console.error('Ошибка создания факта:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось создать факт')
     }
   }
 

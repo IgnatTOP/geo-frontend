@@ -97,13 +97,13 @@ export default function AdminVideosPage() {
         url: formData.url,
         type: formData.type,
       })
-      success('Видео успешно создано')
+      success(`Видео "${formData.title}" успешно добавлено`)
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', url: '', type: 'youtube' })
       loadVideos()
     } catch (error) {
       console.error('Ошибка создания видео:', error)
-      // Ошибка уже обработана в API интерцепторе
+      showError('Не удалось создать видео')
     }
   }
 
