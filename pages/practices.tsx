@@ -1,23 +1,14 @@
 import { useEffect, useState } from 'react'
 import { FullPageLoading } from '@/components/ui/loading'
 import { useRouter } from 'next/router'
-import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
-import { FullPageLoading } from '@/components/ui/loading'
 import { getPractices, getMyPracticeSubmits, getMyPracticeGrades } from '@/services/practices'
-import { FullPageLoading } from '@/components/ui/loading'
 import type { Practice, PracticeSubmit, PracticeGrade } from '@/services/practices'
-import { FullPageLoading } from '@/components/ui/loading'
 import { normalizeFileUrl } from '@/services/upload'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
-import { FullPageLoading } from '@/components/ui/loading'
 import SearchBar from '@/components/SearchBar'
-import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
-import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница со списком практических заданий

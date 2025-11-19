@@ -1,21 +1,13 @@
 import { useState, useEffect } from 'react'
 import { FullPageLoading } from '@/components/ui/loading'
 import { useRouter } from 'next/router'
-import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
-import { FullPageLoading } from '@/components/ui/loading'
 import { login } from '@/services/auth'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
-import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
-import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница входа в систему
