@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { getLessons } from '@/services/lessons'
 import { getReports } from '@/services/reports'
@@ -11,6 +12,7 @@ import type { Fact } from '@/services/facts'
 import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import SearchBar from '@/components/SearchBar'
 import Link from 'next/link'
 
@@ -57,7 +59,7 @@ export default function TheoryPage() {
   }, [isAuth, authLoading])
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {
@@ -73,10 +75,6 @@ export default function TheoryPage() {
         </Card>
       </div>
     )
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
   }
 
   // Фильтрация и поиск
@@ -167,10 +165,12 @@ export default function TheoryPage() {
                       if (images && images.length > 0) {
                         return (
                           <div className="relative h-48 overflow-hidden">
-                            <img
+                            <Image
                               src={normalizeFileUrl(images[0]) || images[0]}
                               alt={lesson.topic}
-                              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                              fill
+                              className="object-cover transition-transform duration-300 group-hover:scale-110"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent" />
                             <div className="absolute top-2 right-2">
@@ -430,11 +430,15 @@ export default function TheoryPage() {
             {facts.map((fact) => (
               <Card key={fact.id}>
                 {fact.image_url && (
-                  <img
-                    src={normalizeFileUrl(fact.image_url) || fact.image_url}
-                    alt={fact.title}
-                    className="w-full h-48 object-cover rounded-t-lg"
-                  />
+                  <div className="relative h-48 w-full">
+                    <Image
+                      src={normalizeFileUrl(fact.image_url) || fact.image_url}
+                      alt={fact.title}
+                      fill
+                      className="object-cover rounded-t-lg"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    />
+                  </div>
                 )}
                 <CardHeader>
                   <CardTitle>{fact.title}</CardTitle>

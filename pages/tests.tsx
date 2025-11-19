@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useRouter } from 'next/router'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getTests, getMyTestAttempts, getMyTestGrades } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Test, TestAttempt, TestGrade } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import SearchBar from '@/components/SearchBar'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница со списком тестов
@@ -48,7 +57,7 @@ export default function TestsPage() {
   }, [isAuth, authLoading])
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {
@@ -64,10 +73,6 @@ export default function TestsPage() {
         </Card>
       </div>
     )
-  }
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
   }
 
   const getTestAttempt = (testId: number) => {

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { getFact } from '@/services/facts'
 import type { Fact } from '@/services/facts'
 import { normalizeImageUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
 import { Share2, ArrowLeft } from 'lucide-react'
 
@@ -16,6 +19,7 @@ export default function FactDetailPage() {
   const router = useRouter()
   const { id } = router.query
   const { isAuth, loading: authLoading } = useAuth()
+  const { success } = useToast()
   const [fact, setFact] = useState<Fact | null>(null)
   const [loading, setLoading] = useState(true)
   const [relatedFacts, setRelatedFacts] = useState<Fact[]>([])
@@ -60,7 +64,7 @@ export default function FactDetailPage() {
       // Fallback: копируем URL в буфер обмена
       try {
         await navigator.clipboard.writeText(window.location.href)
-        alert('Ссылка скопирована в буфер обмена!')
+        success('Ссылка скопирована в буфер обмена!')
       } catch (error) {
         console.error('Ошибка копирования:', error)
       }
@@ -83,7 +87,7 @@ export default function FactDetailPage() {
   }
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!fact) {
@@ -121,11 +125,13 @@ export default function FactDetailPage() {
         {/* Основной контент факта */}
         <Card className="border-2 border-primary/10 shadow-lg">
           {fact.image_url && (
-            <div className="relative overflow-hidden">
-              <img
+            <div className="relative overflow-hidden h-96">
+              <Image
                 src={normalizeImageUrl(fact.image_url) || fact.image_url}
                 alt={fact.title}
-                className="w-full h-96 object-cover"
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 100vw, 800px"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
             </div>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { getFacts, createFact, updateFact, deleteFact } from '@/services/facts'
 import type { Fact } from '@/services/facts'
 import { normalizeFileUrl } from '@/services/upload'
@@ -7,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import FileUpload from '@/components/FileUpload'
 import Link from 'next/link'
@@ -16,6 +19,7 @@ import Link from 'next/link'
  */
 export default function AdminFactsPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [facts, setFacts] = useState<Fact[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -50,15 +54,15 @@ export default function AdminFactsPage() {
 
   const handleCreate = async () => {
     if (!formData.title.trim()) {
-      alert('Введите заголовок факта')
+      showError('Введите заголовок факта')
       return
     }
     if (!formData.content.trim()) {
-      alert('Введите содержание факта')
+      showError('Введите содержание факта')
       return
     }
     if (formData.image_url && !validateImageUrl(formData.image_url)) {
-      alert('Некорректный URL изображения. Используйте ссылку на изображение (jpg, png, gif, webp) или сервисы типа Unsplash, Pexels')
+      showError('Некорректный URL изображения. Используйте ссылку на изображение (jpg, png, gif, webp) или сервисы типа Unsplash, Pexels')
       return
     }
     try {
@@ -67,12 +71,13 @@ export default function AdminFactsPage() {
         content: formData.content,
         image_url: formData.image_url || undefined,
       })
+      success('Факт успешно создан')
       setIsDialogOpen(false)
       setFormData({ title: '', content: '', image_url: '' })
       loadFacts()
     } catch (error) {
       console.error('Ошибка создания факта:', error)
-      alert('Ошибка создания факта')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -83,15 +88,15 @@ export default function AdminFactsPage() {
     const imageUrl = formData.image_url.trim() || editingFact.image_url || undefined
     
     if (!title) {
-      alert('Заголовок не может быть пустым')
+      showError('Заголовок не может быть пустым')
       return
     }
     if (!content) {
-      alert('Содержание не может быть пустым')
+      showError('Содержание не может быть пустым')
       return
     }
     if (imageUrl && !validateImageUrl(imageUrl)) {
-      alert('Некорректный URL изображения')
+      showError('Некорректный URL изображения')
       return
     }
     try {
@@ -100,13 +105,14 @@ export default function AdminFactsPage() {
         content,
         image_url: imageUrl,
       })
+      success('Факт успешно обновлен')
       setIsDialogOpen(false)
       setEditingFact(null)
       setFormData({ title: '', content: '', image_url: '' })
       loadFacts()
     } catch (error) {
       console.error('Ошибка обновления факта:', error)
-      alert('Ошибка обновления факта')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -114,10 +120,11 @@ export default function AdminFactsPage() {
     if (!confirm('Удалить факт?')) return
     try {
       await deleteFact(id)
+      success('Факт успешно удален')
       loadFacts()
     } catch (error) {
       console.error('Ошибка удаления факта:', error)
-      alert('Ошибка удаления факта')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -149,7 +156,7 @@ export default function AdminFactsPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (
@@ -238,11 +245,15 @@ export default function AdminFactsPage() {
           {facts.map((fact) => (
             <Card key={fact.id}>
               {fact.image_url && (
-                <img
-                  src={normalizeFileUrl(fact.image_url) || fact.image_url}
-                  alt={fact.title}
-                  className="w-full h-48 object-cover rounded-t-lg"
-                />
+                <div className="relative h-48 w-full">
+                  <Image
+                    src={normalizeFileUrl(fact.image_url) || fact.image_url}
+                    alt={fact.title}
+                    fill
+                    className="object-cover rounded-t-lg"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                </div>
               )}
               <CardHeader>
                 <CardTitle>{fact.title}</CardTitle>

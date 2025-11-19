@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
+import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { getLesson } from '@/services/lessons'
 import type { Lesson } from '@/services/lessons'
 import { normalizeFileUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import DocumentViewer from '@/components/DocumentViewer'
 import Link from 'next/link'
 
@@ -44,7 +46,7 @@ export default function LessonDetailPage() {
   }, [isAuth, id, authLoading])
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {
@@ -122,11 +124,13 @@ export default function LessonDetailPage() {
                         {images.map((imageUrl, index) => {
                           const normalizedUrl = normalizeFileUrl(imageUrl) || imageUrl
                           return (
-                          <div key={index} className="rounded-lg overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all">
-                            <img
+                          <div key={index} className="rounded-lg overflow-hidden border-2 border-primary/10 hover:border-primary/30 transition-all relative h-64">
+                            <Image
                               src={normalizedUrl}
                               alt={`Фото ${index + 1}`}
-                              className="w-full h-64 object-cover cursor-pointer hover:scale-105 transition-transform"
+                              fill
+                              className="object-cover cursor-pointer hover:scale-105 transition-transform"
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                               onClick={() => window.open(normalizedUrl, '_blank')}
                             />
                           </div>

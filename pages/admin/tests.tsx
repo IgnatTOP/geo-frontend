@@ -1,21 +1,36 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
+import { useToast } from '@/context/ToastContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getTests, createTest, updateTest, deleteTest, getAllTestAttempts, createTestGrade, updateTestGrade, deleteTestGrade } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getLessons } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Test, TestAttempt, TestGrade } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Lesson } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница управления тестами и оценками (админка)
  */
 export default function AdminTestsPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [tests, setTests] = useState<Test[]>([])
   const [attempts, setAttempts] = useState<TestAttempt[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -99,34 +114,34 @@ export default function AdminTestsPage() {
 
   const handleCreateTest = async () => {
     if (!formData.lesson_id) {
-      alert('Выберите урок')
+      showError('Выберите урок')
       return
     }
     if (!formData.title) {
-      alert('Введите название теста')
+      showError('Введите название теста')
       return
     }
     if (formData.questions.length === 0) {
-      alert('Добавьте хотя бы один вопрос')
+      showError('Добавьте хотя бы один вопрос')
       return
     }
     // Валидация вопросов
     for (let i = 0; i < formData.questions.length; i++) {
       const q = formData.questions[i]
       if (!q.question) {
-        alert(`Вопрос ${i + 1}: введите текст вопроса`)
+        showError(`Вопрос ${i + 1}: введите текст вопроса`)
         return
       }
       if (q.options.length < 2) {
-        alert(`Вопрос ${i + 1}: добавьте хотя бы 2 варианта ответа`)
+        showError(`Вопрос ${i + 1}: добавьте хотя бы 2 варианта ответа`)
         return
       }
       if (q.options.some(opt => !opt.trim())) {
-        alert(`Вопрос ${i + 1}: все варианты ответов должны быть заполнены`)
+        showError(`Вопрос ${i + 1}: все варианты ответов должны быть заполнены`)
         return
       }
       if (q.correct_answer < 0 || q.correct_answer >= q.options.length) {
-        alert(`Вопрос ${i + 1}: выберите правильный ответ`)
+        showError(`Вопрос ${i + 1}: выберите правильный ответ`)
         return
       }
     }
@@ -138,12 +153,13 @@ export default function AdminTestsPage() {
         type: formData.type,
         questions: formData.questions,
       } as any)
+      success('Тест успешно создан')
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', description: '', type: 'single', questions: [] })
       loadData()
     } catch (error) {
       console.error('Ошибка создания теста:', error)
-      alert('Ошибка создания теста')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -151,10 +167,11 @@ export default function AdminTestsPage() {
     if (!confirm('Удалить тест?')) return
     try {
       await deleteTest(id)
+      success('Тест успешно удален')
       loadData()
     } catch (error) {
       console.error('Ошибка удаления теста:', error)
-      alert('Ошибка удаления теста')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -167,12 +184,14 @@ export default function AdminTestsPage() {
         grade: parseFloat(gradeData.grade),
         comment: gradeData.comment || undefined,
       })
+      success('Оценка успешно выставлена')
       setIsGradeDialogOpen(false)
       setGradeData({ user_id: '', test_id: '', attempt_id: '', grade: '', comment: '' })
       setSelectedAttempt(null)
+      loadData()
     } catch (error) {
       console.error('Ошибка создания оценки:', error)
-      alert('Ошибка создания оценки')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -206,7 +225,7 @@ export default function AdminTestsPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (

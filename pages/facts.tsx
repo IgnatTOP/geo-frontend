@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useAuth } from '@/context/AuthContext'
 import { getFacts } from '@/services/facts'
 import type { Fact } from '@/services/facts'
 import { normalizeImageUrl } from '@/services/upload'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import SearchBar from '@/components/SearchBar'
 import Link from 'next/link'
 
@@ -52,7 +54,7 @@ export default function FactsPage() {
   }, [isAuth, page, authLoading])
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {
@@ -106,11 +108,13 @@ export default function FactsPage() {
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
               {fact.image_url && (
-                <div className="relative overflow-hidden">
-                  <img
+                <div className="relative overflow-hidden h-64">
+                  <Image
                     src={normalizeImageUrl(fact.image_url) || fact.image_url}
                     alt={fact.title}
-                    className="w-full h-64 object-cover transition-transform duration-300 hover:scale-110"
+                    fill
+                    className="object-cover transition-transform duration-300 hover:scale-110"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                 </div>

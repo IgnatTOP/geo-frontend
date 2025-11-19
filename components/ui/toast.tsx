@@ -45,12 +45,12 @@ export function Toast({ message, type = 'info', onClose }: ToastProps) {
   }[type]
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 ${bgColor} text-white px-4 py-3 rounded-lg shadow-xl animate-slide-in max-w-md`}>
+    <div className={`flex items-center gap-3 ${bgColor} text-white px-4 py-3 rounded-lg shadow-xl animate-slide-in w-full`}>
       {icon}
       <p className="flex-1 text-sm font-medium">{message}</p>
       <button
         onClick={onClose}
-        className="text-white hover:opacity-80 transition-opacity"
+        className="text-white hover:opacity-80 transition-opacity flex-shrink-0"
         aria-label="Закрыть"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

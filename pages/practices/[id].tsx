@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { getPractice, submitPractice, getMyPracticeSubmits } from '@/services/practices'
 import type { Practice, PracticeSubmit } from '@/services/practices'
 import { normalizeFileUrl } from '@/services/upload'
@@ -8,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import FileUpload from '@/components/FileUpload'
 import Link from 'next/link'
 
@@ -18,6 +20,7 @@ export default function PracticeDetailPage() {
   const router = useRouter()
   const { id } = router.query
   const { isAuth, loading: authLoading } = useAuth()
+  const { success, error: showError } = useToast()
   const [practice, setPractice] = useState<Practice | null>(null)
   const [submits, setSubmits] = useState<PracticeSubmit[]>([])
   const [fileUrl, setFileUrl] = useState('')
@@ -53,29 +56,31 @@ export default function PracticeDetailPage() {
 
   const handleSubmit = async () => {
     if (!practice || !fileUrl) {
-      alert('Введите URL файла')
+      showError('Введите URL файла или загрузите файл')
       return
     }
 
     setSubmitting(true)
     try {
       await submitPractice(practice.id, fileUrl)
-      alert('Задание успешно отправлено!')
-      if (practice.lesson_id) {
-        router.push(`/lessons/${practice.lesson_id}`)
-      } else {
-        router.push('/practices')
-      }
+      success('Задание успешно отправлено!')
+      setTimeout(() => {
+        if (practice.lesson_id) {
+          router.push(`/lessons/${practice.lesson_id}`)
+        } else {
+          router.push('/practices')
+        }
+      }, 1500)
     } catch (error) {
       console.error('Ошибка отправки задания:', error)
-      alert('Ошибка отправки задания')
+      // Ошибка уже обработана в API интерцепторе
     } finally {
       setSubmitting(false)
     }
   }
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {

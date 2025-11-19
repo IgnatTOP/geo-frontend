@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 
@@ -6,13 +6,28 @@ interface SearchBarProps {
   placeholder?: string
   onSearch: (query: string) => void
   className?: string
+  debounceMs?: number
 }
 
 /**
- * Компонент поиска
+ * Компонент поиска с debounce
  */
-export default function SearchBar({ placeholder = 'Поиск...', onSearch, className = '' }: SearchBarProps) {
+export default function SearchBar({ 
+  placeholder = 'Поиск...', 
+  onSearch, 
+  className = '',
+  debounceMs = 300 
+}: SearchBarProps) {
   const [query, setQuery] = useState('')
+
+  // Debounce для автоматического поиска при вводе
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      onSearch(query)
+    }, debounceMs)
+
+    return () => clearTimeout(timer)
+  }, [query, debounceMs, onSearch])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,6 +57,7 @@ export default function SearchBar({ placeholder = 'Поиск...', onSearch, cla
               size="sm"
               onClick={handleClear}
               className="h-6 w-6 p-0 hover:bg-primary/10"
+              aria-label="Очистить поиск"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -53,6 +69,7 @@ export default function SearchBar({ placeholder = 'Поиск...', onSearch, cla
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-0 hover:bg-primary/10"
+            aria-label="Поиск"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />

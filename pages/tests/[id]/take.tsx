@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { useAuth } from '@/context/AuthContext'
+import { useToast } from '@/context/ToastContext'
 import { getTest, createTestAttempt, getMyTestAttempts } from '@/services/tests'
 import type { Test, TestQuestion } from '@/services/tests'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
 
 /**
@@ -15,6 +17,7 @@ export default function TakeTestPage() {
   const router = useRouter()
   const { id } = router.query
   const { isAuth, loading: authLoading } = useAuth()
+  const { error: showError } = useToast()
   const [test, setTest] = useState<Test | null>(null)
   const [answers, setAnswers] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
@@ -68,7 +71,7 @@ export default function TakeTestPage() {
 
     // Проверяем, что все вопросы отвечены
     if (Object.keys(answers).length < test.questions.length) {
-      alert('Пожалуйста, ответьте на все вопросы')
+      showError('Пожалуйста, ответьте на все вопросы')
       return
     }
 
@@ -80,10 +83,10 @@ export default function TakeTestPage() {
       setSubmitted(true)
       setHasPreviousAttempt(true)
       setPreviousAttempt(attempt)
+      // Ошибка уже обработана в API интерцепторе, успех показывается через результат
     } catch (error: any) {
       console.error('Ошибка отправки теста:', error)
-      const errorMessage = error.response?.data?.error || 'Ошибка отправки теста'
-      alert(errorMessage)
+      // Ошибка уже обработана в API интерцепторе
     } finally {
       setSubmitting(false)
     }
@@ -105,7 +108,7 @@ export default function TakeTestPage() {
   }
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!test) {

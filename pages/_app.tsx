@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app'
 import { AuthProvider } from '@/context/AuthContext'
+import { ToastProvider } from '@/context/ToastContext'
 import Header from '@/components/layout/Header'
 import Footer from '@/components/layout/Footer'
 import '@/styles/globals.css'
@@ -12,13 +13,15 @@ import '@/styles/globals.css'
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <div className="flex flex-col min-h-screen">
-        <Header />
-        <main className="flex-1">
-          <Component {...pageProps} />
-        </main>
-        <Footer />
-      </div>
+      <ToastProvider>
+        <div className="flex flex-col min-h-screen">
+          <Header />
+          <main className="flex-1">
+            <Component {...pageProps} />
+          </main>
+          <Footer />
+        </div>
+      </ToastProvider>
     </AuthProvider>
   )
 }

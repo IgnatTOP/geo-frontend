@@ -1,12 +1,21 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getMyTestGrades } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getMyPracticeGrades } from '@/services/practices'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { TestGrade } from '@/services/tests'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { PracticeGrade } from '@/services/practices'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница профиля пользователя с результатами
@@ -43,7 +52,7 @@ export default function ProfilePage() {
   }, [isAuth, authLoading])
 
   if (authLoading || loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   if (!isAuth) {
@@ -62,7 +71,7 @@ export default function ProfilePage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   const averageTestGrade =

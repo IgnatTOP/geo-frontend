@@ -1,22 +1,38 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
+import { useToast } from '@/context/ToastContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getVideos, createVideo, updateVideo, deleteVideo } from '@/services/videos'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getLessons } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Video } from '@/services/videos'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Lesson } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { FullPageLoading } from '@/components/ui/loading'
 import FileUpload from '@/components/FileUpload'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница управления видеоматериалами (админка)
  */
 export default function AdminVideosPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [videos, setVideos] = useState<Video[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
@@ -77,11 +93,11 @@ export default function AdminVideosPage() {
 
   const handleCreate = async () => {
     if (!formData.title.trim()) {
-      alert('Введите название видео')
+      showError('Введите название видео')
       return
     }
     if (!validateUrl(formData.url, formData.type)) {
-      alert(`Некорректный URL для типа "${formData.type}". Для YouTube используйте формат: https://www.youtube.com/watch?v=... или https://youtu.be/...`)
+      showError(`Некорректный URL для типа "${formData.type}". Для YouTube используйте формат: https://www.youtube.com/watch?v=... или https://youtu.be/...`)
       return
     }
     try {
@@ -91,12 +107,13 @@ export default function AdminVideosPage() {
         url: formData.url,
         type: formData.type,
       })
+      success('Видео успешно создано')
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', url: '', type: 'youtube' })
       loadVideos()
     } catch (error) {
       console.error('Ошибка создания видео:', error)
-      alert('Ошибка создания видео')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -107,11 +124,11 @@ export default function AdminVideosPage() {
     const type = formData.type || editingVideo.type
     
     if (!title.trim()) {
-      alert('Введите название видео')
+      showError('Введите название видео')
       return
     }
     if (!validateUrl(url, type)) {
-      alert(`Некорректный URL для типа "${type}"`)
+      showError(`Некорректный URL для типа "${type}"`)
       return
     }
     try {
@@ -121,13 +138,14 @@ export default function AdminVideosPage() {
         url,
         type,
       })
+      success('Видео успешно обновлено')
       setIsDialogOpen(false)
       setEditingVideo(null)
       setFormData({ lesson_id: '', title: '', url: '', type: 'youtube' })
       loadVideos()
     } catch (error) {
       console.error('Ошибка обновления видео:', error)
-      alert('Ошибка обновления видео')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -135,10 +153,11 @@ export default function AdminVideosPage() {
     if (!confirm('Удалить видео?')) return
     try {
       await deleteVideo(id)
+      success('Видео успешно удалено')
       loadVideos()
     } catch (error) {
       console.error('Ошибка удаления видео:', error)
-      alert('Ошибка удаления видео')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -171,7 +190,7 @@ export default function AdminVideosPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (

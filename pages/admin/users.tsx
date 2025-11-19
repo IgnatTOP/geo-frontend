@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
+import { useToast } from '@/context/ToastContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import api from '@/services/api'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { User } from '@/services/auth'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница управления пользователями (админка)
  */
 export default function AdminUsersPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -44,13 +57,14 @@ export default function AdminUsersPage() {
         email: formData.email || editingUser.email,
         role: formData.role || editingUser.role,
       })
+      success('Пользователь успешно обновлен')
       setIsDialogOpen(false)
       setEditingUser(null)
       setFormData({ name: '', email: '', role: 'student' })
       loadUsers()
     } catch (error) {
       console.error('Ошибка обновления пользователя:', error)
-      alert('Ошибка обновления пользователя')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -58,10 +72,11 @@ export default function AdminUsersPage() {
     if (!confirm('Удалить пользователя?')) return
     try {
       await api.delete(`/admin/users/${id}`)
+      success('Пользователь успешно удален')
       loadUsers()
     } catch (error) {
       console.error('Ошибка удаления пользователя:', error)
-      alert('Ошибка удаления пользователя')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -93,7 +108,7 @@ export default function AdminUsersPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (

@@ -1,23 +1,40 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
+import { useToast } from '@/context/ToastContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getPractices, createPractice, updatePractice, deletePractice, getAllPracticeSubmits, createPracticeGrade } from '@/services/practices'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getLessons } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Practice, PracticeSubmit } from '@/services/practices'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Lesson } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import { normalizeFileUrl } from '@/services/upload'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { FullPageLoading } from '@/components/ui/loading'
 import FileUpload from '@/components/FileUpload'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница управления практическими заданиями (админка)
  */
 export default function AdminPracticesPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [practices, setPractices] = useState<Practice[]>([])
   const [submits, setSubmits] = useState<PracticeSubmit[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
@@ -63,7 +80,7 @@ export default function AdminPracticesPage() {
 
   const handleCreate = async () => {
     if (!formData.lesson_id) {
-      alert('Выберите урок')
+      showError('Выберите урок')
       return
     }
     try {
@@ -72,12 +89,13 @@ export default function AdminPracticesPage() {
         title: formData.title,
         file_url: formData.file_url,
       })
+      success('Практическое задание успешно создано')
       setIsDialogOpen(false)
       setFormData({ lesson_id: '', title: '', file_url: '' })
       loadData()
     } catch (error) {
       console.error('Ошибка создания практики:', error)
-      alert('Ошибка создания практики')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -85,10 +103,11 @@ export default function AdminPracticesPage() {
     if (!confirm('Удалить практическое задание?')) return
     try {
       await deletePractice(id)
+      success('Практическое задание успешно удалено')
       loadData()
     } catch (error) {
       console.error('Ошибка удаления практики:', error)
-      alert('Ошибка удаления практики')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -101,13 +120,14 @@ export default function AdminPracticesPage() {
         grade: parseFloat(gradeData.grade),
         comment: gradeData.comment || undefined,
       })
+      success('Оценка успешно выставлена')
       setIsGradeDialogOpen(false)
       setGradeData({ user_id: '', practice_id: '', submit_id: '', grade: '', comment: '' })
       setSelectedSubmit(null)
       loadData()
     } catch (error) {
       console.error('Ошибка создания оценки:', error)
-      alert('Ошибка создания оценки')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -141,7 +161,7 @@ export default function AdminPracticesPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (

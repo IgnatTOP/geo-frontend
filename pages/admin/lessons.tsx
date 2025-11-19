@@ -1,20 +1,34 @@
 import { useEffect, useState } from 'react'
+import { FullPageLoading } from '@/components/ui/loading'
 import { useAuth } from '@/context/AuthContext'
+import { FullPageLoading } from '@/components/ui/loading'
+import { useToast } from '@/context/ToastContext'
+import { FullPageLoading } from '@/components/ui/loading'
 import { getLessons, createLesson, updateLesson, deleteLesson } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import type { Lesson } from '@/services/lessons'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Button } from '@/components/ui/button'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Input } from '@/components/ui/input'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Label } from '@/components/ui/label'
+import { FullPageLoading } from '@/components/ui/loading'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { FullPageLoading } from '@/components/ui/loading'
 import FileUpload, { FileList } from '@/components/FileUpload'
+import { FullPageLoading } from '@/components/ui/loading'
 import Link from 'next/link'
+import { FullPageLoading } from '@/components/ui/loading'
 
 /**
  * Страница управления уроками (админка)
  */
 export default function AdminLessonsPage() {
   const { user, isAuth } = useAuth()
+  const { success, error: showError } = useToast()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [loading, setLoading] = useState(true)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -82,16 +96,16 @@ export default function AdminLessonsPage() {
 
   const handleCreate = async () => {
     if (!formData.number.trim()) {
-      alert('Введите номер урока')
+      showError('Введите номер урока')
       return
     }
     const number = parseInt(formData.number)
     if (isNaN(number) || number < 1) {
-      alert('Номер урока должен быть положительным числом')
+      showError('Номер урока должен быть положительным числом')
       return
     }
     if (!formData.topic.trim()) {
-      alert('Введите тему урока')
+      showError('Введите тему урока')
       return
     }
     try {
@@ -103,12 +117,13 @@ export default function AdminLessonsPage() {
         documents: formData.documents.length > 0 ? JSON.stringify(formData.documents) : undefined,
         video_files: formData.video_files.length > 0 ? JSON.stringify(formData.video_files) : undefined,
       })
+      success('Урок успешно создан')
       setIsDialogOpen(false)
       setFormData({ number: '', topic: '', content: '', images: [], documents: [], video_files: [] })
       loadLessons()
     } catch (error) {
       console.error('Ошибка создания урока:', error)
-      alert('Ошибка создания урока')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -123,13 +138,14 @@ export default function AdminLessonsPage() {
         documents: formData.documents.length > 0 ? JSON.stringify(formData.documents) : (editingLesson.documents || undefined),
         video_files: formData.video_files.length > 0 ? JSON.stringify(formData.video_files) : (editingLesson.video_files || undefined),
       })
+      success('Урок успешно обновлен')
       setIsDialogOpen(false)
       setEditingLesson(null)
       setFormData({ number: '', topic: '', content: '', images: [], documents: [], video_files: [] })
       loadLessons()
     } catch (error) {
       console.error('Ошибка обновления урока:', error)
-      alert('Ошибка обновления урока')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -140,13 +156,14 @@ export default function AdminLessonsPage() {
     setLessons(lessons.filter(lesson => lesson.id !== id))
     try {
       await deleteLesson(id)
+      success('Урок успешно удален')
       // Перезагружаем список для синхронизации с сервером
       loadLessons()
     } catch (error) {
       console.error('Ошибка удаления урока:', error)
       // Восстанавливаем список при ошибке
       setLessons(previousLessons)
-      alert('Ошибка удаления урока')
+      // Ошибка уже обработана в API интерцепторе
     }
   }
 
@@ -195,7 +212,7 @@ export default function AdminLessonsPage() {
   }
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Загрузка...</div>
+    return <FullPageLoading />
   }
 
   return (

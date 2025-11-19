@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react'
+import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { uploadFile, getFileType } from '@/services/upload'
@@ -131,11 +132,13 @@ export function FileList({ files, onRemove, label = 'Файлы' }: FileListProp
           return (
             <div key={index} className="flex items-start gap-3 rounded-md border p-2 hover:bg-muted/50 transition-colors">
               {isImage && (
-                <div className="flex-shrink-0">
-                  <img
+                <div className="flex-shrink-0 relative w-16 h-16">
+                  <Image
                     src={normalizedUrl}
                     alt={`Превью ${index + 1}`}
-                    className="w-16 h-16 object-cover rounded border"
+                    fill
+                    className="object-cover rounded border"
+                    sizes="64px"
                     onError={(e) => {
                       // Если изображение не загрузилось, скрываем превью
                       e.currentTarget.style.display = 'none'
