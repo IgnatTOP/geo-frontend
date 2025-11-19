@@ -54,6 +54,9 @@ export default function AdminTestsPage() {
   // Группировка попыток по урокам
   const attemptsByLesson = useMemo(() => {
     const grouped: Record<number, TestAttempt[]> = {}
+    if (!attempts || !Array.isArray(attempts)) {
+      return grouped
+    }
     attempts.forEach((attempt: any) => {
       const lessonId = attempt.test?.lesson_id
       if (lessonId) {
@@ -86,13 +89,19 @@ export default function AdminTestsPage() {
     try {
       if (activeTab === 'tests') {
         const data = await getTests()
-        setTests(data)
+        setTests(data || [])
       } else if (activeTab === 'attempts') {
         const data = await getAllTestAttempts()
-        setAttempts(data)
+        setAttempts(Array.isArray(data) ? data : [])
       }
     } catch (error) {
       console.error('Ошибка загрузки данных:', error)
+      // Устанавливаем пустые массивы в случае ошибки
+      if (activeTab === 'tests') {
+        setTests([])
+      } else if (activeTab === 'attempts') {
+        setAttempts([])
+      }
     } finally {
       setLoading(false)
     }
@@ -315,8 +324,8 @@ export default function AdminTestsPage() {
               <DialogTrigger asChild>
                 <Button 
                   onClick={() => {
-                    setEditingTest(null)
-                    setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
+                  setEditingTest(null)
+                  setFormData({ lesson_id: '', title: '', description: '', type: 'single', allow_retake: false, questions: [] })
                   }}
                   className="shadow-md"
                 >
@@ -544,10 +553,10 @@ export default function AdminTestsPage() {
                                       {test.title}
                                     </CardTitle>
                                     <CardDescription className="line-clamp-3 min-h-[60px]">
-                                      {test.description || 'Нет описания'}
-                                    </CardDescription>
-                                  </CardHeader>
-                                  <CardContent>
+                      {test.description || 'Нет описания'}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
                                     <div className="space-y-2">
                                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -561,19 +570,19 @@ export default function AdminTestsPage() {
                                           </span>
                                         )}
                                       </div>
-                                      <Button
-                                        variant="destructive"
-                                        onClick={() => handleDeleteTest(test.id)}
-                                        className="w-full"
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDeleteTest(test.id)}
+                      className="w-full"
                                         size="sm"
-                                      >
-                                        Удалить
-                                      </Button>
+                    >
+                      Удалить
+                    </Button>
                                     </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
                           )}
                         </div>
                       )}
@@ -599,7 +608,7 @@ export default function AdminTestsPage() {
           <div className="space-y-4">
             <div className="mb-6">
               <p className="text-muted-foreground">
-                Всего попыток: <span className="font-semibold text-foreground">{attempts.length}</span>
+                Всего попыток: <span className="font-semibold text-foreground">{attempts?.length || 0}</span>
               </p>
             </div>
 
@@ -607,6 +616,12 @@ export default function AdminTestsPage() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <p className="text-muted-foreground">Уроки не найдены</p>
+                </CardContent>
+              </Card>
+            ) : !attempts || attempts.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <p className="text-muted-foreground">Попыток пока нет. Студенты еще не проходили тесты.</p>
                 </CardContent>
               </Card>
             ) : (
@@ -648,7 +663,7 @@ export default function AdminTestsPage() {
                                     <div className="flex-1">
                                       <CardTitle className="text-base mb-2">
                                         {attempt.test?.title || 'Неизвестный тест'}
-                                      </CardTitle>
+                  </CardTitle>
                                       <CardDescription className="space-y-1">
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium">Студент:</span>
@@ -692,10 +707,10 @@ export default function AdminTestsPage() {
                                             <span className="font-medium">Комментарий:</span> {attempt.grade.comment}
                                           </div>
                                         )}
-                                      </CardDescription>
+                  </CardDescription>
                                     </div>
                                   </div>
-                                </CardHeader>
+                </CardHeader>
                                 <CardContent className="pt-0">
                                   <div className="flex gap-2 flex-wrap">
                                     <Button 
@@ -704,7 +719,7 @@ export default function AdminTestsPage() {
                                       variant={attempt.grade ? "outline" : "default"}
                                     >
                                       {attempt.grade ? 'Изменить оценку' : 'Выставить оценку'}
-                                    </Button>
+                  </Button>
                                     <Button 
                                       onClick={() => handleAllowRetake(attempt.id, attempt.user?.name || 'студента')}
                                       size="sm"
@@ -713,9 +728,9 @@ export default function AdminTestsPage() {
                                       Разрешить пересдачу
                                     </Button>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            ))}
+                </CardContent>
+              </Card>
+            ))}
                           </div>
                         </div>
                       )}
@@ -723,14 +738,6 @@ export default function AdminTestsPage() {
                   )
                 })}
               </div>
-            )}
-
-            {attempts.length === 0 && (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <p className="text-muted-foreground">Попыток пока нет</p>
-                </CardContent>
-              </Card>
             )}
           </div>
         )}

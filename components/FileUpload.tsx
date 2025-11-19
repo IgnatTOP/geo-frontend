@@ -147,7 +147,9 @@ export function FileList({ files, onRemove, label = 'Файлы' }: FileListProp
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <span className="text-sm truncate block">{url}</span>
+                <span className="text-sm truncate block" title={url}>
+                  {url.length > 50 ? url.substring(0, 50) + '...' : url}
+                </span>
                 {isImage && (
                   <span className="text-xs text-muted-foreground">Изображение</span>
                 )}

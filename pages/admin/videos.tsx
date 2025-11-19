@@ -242,6 +242,9 @@ export default function AdminVideosPage() {
                         type="url"
                         value={formData.url}
                         onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                        className="overflow-hidden text-ellipsis"
+                        style={{ maxWidth: '100%', textOverflow: 'ellipsis' }}
+                        title={formData.url || ''}
                         placeholder={
                           formData.type === 'youtube' 
                             ? 'Введите URL YouTube'

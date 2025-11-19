@@ -210,6 +210,9 @@ export default function AdminFactsPage() {
                         value={formData.image_url}
                         onChange={(e) => setFormData({ ...formData, image_url: e.target.value })}
                         placeholder="Или введите URL изображения (необязательно)"
+                        className="overflow-hidden text-ellipsis"
+                        style={{ maxWidth: '100%', textOverflow: 'ellipsis' }}
+                        title={formData.image_url || ''}
                       />
                       {formData.image_url && !validateImageUrl(formData.image_url) && (
                         <p className="text-sm text-destructive mt-1">

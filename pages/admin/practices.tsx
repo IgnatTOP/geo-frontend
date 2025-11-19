@@ -261,6 +261,9 @@ export default function AdminPracticesPage() {
                           placeholder="Или введите URL файла"
                           value={formData.file_url}
                           onChange={(e) => setFormData({ ...formData, file_url: e.target.value })}
+                          className="overflow-hidden text-ellipsis"
+                          style={{ maxWidth: '100%', textOverflow: 'ellipsis' }}
+                          title={formData.file_url || ''}
                         />
                         <FileUpload
                           onUpload={(url) => setFormData({ ...formData, file_url: url })}
@@ -335,35 +338,35 @@ export default function AdminPracticesPage() {
                                     <CardTitle className="text-lg line-clamp-2">
                                       {practice.title || 'Практическое задание'}
                                     </CardTitle>
-                                  </CardHeader>
+                  </CardHeader>
                                   <CardContent>
                                     <div className="space-y-2">
-                                      {practice.file_url && (() => {
-                                        const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
-                                        return (
-                                          <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
+                    {practice.file_url && (() => {
+                      const normalizedUrl = normalizeFileUrl(practice.file_url) || practice.file_url
+                      return (
+                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                                             <Button variant="outline" className="w-full" size="sm">
                                               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                               </svg>
                                               Файл задания
                                             </Button>
-                                          </a>
-                                        )
-                                      })()}
-                                      <Button
-                                        variant="destructive"
-                                        onClick={() => handleDelete(practice.id)}
-                                        className="w-full"
+                        </a>
+                      )
+                    })()}
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(practice.id)}
+                      className="w-full"
                                         size="sm"
-                                      >
-                                        Удалить
-                                      </Button>
+                    >
+                      Удалить
+                    </Button>
                                     </div>
-                                  </CardContent>
-                                </Card>
-                              ))}
-                            </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
                           )}
                         </div>
                       )}
@@ -438,7 +441,7 @@ export default function AdminPracticesPage() {
                                     <div className="flex-1">
                                       <CardTitle className="text-base mb-2">
                                         {submit.practice?.title || 'Практическое задание'}
-                                      </CardTitle>
+                  </CardTitle>
                                       <CardDescription className="space-y-1">
                                         <div className="flex items-center gap-2">
                                           <span className="font-medium">Студент:</span>
@@ -453,41 +456,41 @@ export default function AdminPracticesPage() {
                                             <span>{new Date(submit.created_at).toLocaleDateString('ru-RU', {
                                               day: '2-digit',
                                               month: '2-digit',
-                                              year: 'numeric',
-                                              hour: '2-digit',
-                                              minute: '2-digit'
+                      year: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
                                             })}</span>
                                           </span>
                                         </div>
-                                      </CardDescription>
+                  </CardDescription>
                                     </div>
                                   </div>
-                                </CardHeader>
+                </CardHeader>
                                 <CardContent className="pt-0">
                                   <div className="flex gap-2 flex-wrap">
-                                    {(() => {
-                                      const normalizedUrl = normalizeFileUrl(submit.file_url) || submit.file_url
-                                      return (
-                                        <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
+                  {(() => {
+                    const normalizedUrl = normalizeFileUrl(submit.file_url) || submit.file_url
+                    return (
+                  <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" download>
                                           <Button variant="outline" size="sm">
                                             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Открыть файл
                                           </Button>
-                                        </a>
-                                      )
-                                    })()}
+                  </a>
+                    )
+                  })()}
                                     <Button 
                                       onClick={() => openGradeDialog(submit)}
                                       size="sm"
                                     >
-                                      Выставить оценку
-                                    </Button>
+                    Выставить оценку
+                  </Button>
                                   </div>
-                                </CardContent>
-                              </Card>
-                            ))}
+                </CardContent>
+              </Card>
+            ))}
                           </div>
                         </div>
                       )}
